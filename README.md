@@ -1,6 +1,15 @@
 
 # TODO
 
+## Doing
+
+- Multiple videos
+
+
+## Done
+
+- Clone project
+
 ## P1
 
 - Watch Mode: should I have a GradebookUiConfig for Watch and Edit
@@ -20,7 +29,6 @@
     - Server data can be overwritten with just a click
     - Score data can be done with 4 buttons (incre/decrement me or oppo points)
 
-- Multiple videos
 
 ## P2
 
@@ -33,7 +41,6 @@
 - Think about a final shot normalized rating columns
 - Advanced stats like set pt number, double fault number.
 - Undo, Unsave status
-- Clone project
 - Project title above menu button
   - Edit
   - Show Unsave status

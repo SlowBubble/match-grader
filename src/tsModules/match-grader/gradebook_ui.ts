@@ -151,10 +151,24 @@ export class GradebookUi extends HTMLElement {
       } else {
         this.banner.success('Saved!');
       }
+    } else if (matchKey(evt, 'cmd+shift+s')) {
+      evt.preventDefault();
+      await this.cloneAndGoToProject();
     } else {
       return;
     }
     evt.preventDefault();
+  }
+
+  private async cloneAndGoToProject() {
+    this.banner.inProgress('Cloning project...');
+    const newId = (new Date()).toISOString();
+    
+    this.gradebookMgr.project.projectInfo.id = newId;
+    this.gradebookMgr.project.projectInfo.owner = '';
+    
+    await this.gradebookMgr.save();
+    window.location.href = `${location.origin}/edit.html#id=${newId}`;
   }
 
   handleKeydownWithSheetChanges(evt: KeyboardEvent) {
