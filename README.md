@@ -23,7 +23,6 @@
     - Score data can be done with 4 buttons (incre/decrement me or oppo points)
 
 - Clone project
-- Remove project
 - Multiple videos
 
 

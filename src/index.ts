@@ -74,21 +74,38 @@ async function populateProjects() {
   const docs = await dao.getAll();
   const projects = docs.map(json => GradebookProject.deserialize(json));
   const list = projects.map(project => {
-  return {
-    text: `${project.matchData.myName} vs ${project.matchData.oppoName}`,
-    link: `/edit.html#id=${project.projectInfo.id}`,
-    createdAt: new Date(project.projectInfo.createdAt),
-    lastEditedAt: new Date(project.projectInfo.lastEditedAt),
-  };
+    return {
+      id: project.projectInfo.id,
+      text: `${project.matchData.myName} vs ${project.matchData.oppoName}`,
+      link: `/edit.html#id=${project.projectInfo.id}`,
+      createdAt: new Date(project.projectInfo.createdAt),
+      lastEditedAt: new Date(project.projectInfo.lastEditedAt),
+      owner: project.projectInfo.owner
+    };
   });
+
+  const currentUser = auth.currentUser;
   document.querySelector<HTMLDivElement>('#projects')!.innerHTML += `
-    ${createTableWithLinksAndDates(list)}
+    ${createTableWithLinksAndDates(list, currentUser?.uid)}
   `;
+
+  // Add click handlers for delete buttons
+  const deleteButtons = document.querySelectorAll<HTMLButtonElement>('.delete-project');
+  deleteButtons.forEach(button => {
+    button.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const projectId = button.dataset.projectId;
+      if (projectId && confirm('Are you sure you want to delete this project?')) {
+        await dao.delete(projectId);
+        location.reload();
+      }
+    });
+  });
 }
 
-
 function createTableWithLinksAndDates(items: {
-    text: string, link: string, createdAt: Date, lastEditedAt: Date }[]): string {
+    id: string, text: string, link: string, createdAt: Date, lastEditedAt: Date, owner: string }[], 
+    currentUserId?: string): string {
   if (items.length === 0) {
     return "";
   }
@@ -106,6 +123,14 @@ function createTableWithLinksAndDates(items: {
     td {
       padding: 10px;
     }
+    .delete-project {
+      background-color: #ee4444;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      border-radius: 3px;
+    }
   </style>
   <table>
     <thead>
@@ -113,14 +138,18 @@ function createTableWithLinksAndDates(items: {
         <th>Match-up</th>
         <th>Created on</th>
         <th>Edited on</th>
+        <th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      ${items.map(({ text, link, createdAt, lastEditedAt }) => `
+      ${items.map(({ id, text, link, createdAt, lastEditedAt, owner }) => `
         <tr>
           <td><a href="${link}">${text}</a></td>
           <td><a href="${link}">${formatDate(createdAt)}</a></td>
           <td><a href="${link}">${formatDate(lastEditedAt)}</a></td>
+          <td>${owner === currentUserId ? 
+            `<button data-project-id="${id}" class="delete-project">X</button>` : 
+            ''}</td>
         </tr>
       `).join('')}
     </tbody>

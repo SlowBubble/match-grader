@@ -16,7 +16,8 @@ export class GradebookMgr {
     const info = this.project.projectInfo;
     const userIsNotOwner = info.owner && info.owner !== auth.currentUser.uid;
     if (userIsNotOwner) {
-      return `You are not the owner. Try cloning instead (cmd+shift+s).`
+      // TODO: add: Try cloning instead (cmd+shift+s).
+      return `You are not the owner.`
     }
     info.lastEditedAt = (new Date()).toISOString();
     // Needed for first time saving.

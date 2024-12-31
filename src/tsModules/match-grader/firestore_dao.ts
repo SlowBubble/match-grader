@@ -2,7 +2,7 @@
 // import { getAnalytics } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
 import { app } from "../firebase/config";
-import { collection, doc, setDoc, getDoc, addDoc, getDocs } from "firebase/firestore"; 
+import { collection, doc, setDoc, getDoc, addDoc, getDocs, deleteDoc } from "firebase/firestore"; 
 
 // TODO use a different collection for prod (e.g. prod-clips)
 export const devCollName = 'clips';
@@ -45,5 +45,11 @@ export class FirestoreDao {
     const coll = collection(db, this.collectionName);
     const docRef = await addDoc(coll, docData);
     return docRef.id;
+  }
+
+  async delete(id: string): Promise<void> {
+    const coll = collection(db, this.collectionName);
+    const docRef = doc(coll, id);
+    await deleteDoc(docRef);
   }
 }
