@@ -3,8 +3,6 @@
 
 ## P1
 
-- Restore functionality in getPlotForNextRally (converted)
-
 - Watch Mode: should I have a GradebookUiConfig for Watch and Edit
   - Remove Start, Result, Winner's, Loser's.
   - Reveal only the start time for the current point
@@ -22,7 +20,6 @@
     - Server data can be overwritten with just a click
     - Score data can be done with 4 buttons (incre/decrement me or oppo points)
 
-- Clone project
 - Multiple videos
 
 ## P2
@@ -36,6 +33,10 @@
 - Think about a final shot normalized rating columns
 - Advanced stats like set pt number, double fault number.
 - Undo, Unsave status
+- Clone project
+- Project title above menu button
+  - Edit
+  - Show Unsave status
 
 
 # Done

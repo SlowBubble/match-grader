@@ -59,6 +59,10 @@ export class RallyContext {
     return (this.rally.isMyServe && this.rally.result === RallyResult.PtServer) ||
         (!this.rally.isMyServe && (this.rally.result === RallyResult.PtReturner || this.isDoubleFault()));
   }
+  winnerIsOppo() {
+    return (!this.rally.isMyServe && this.rally.result === RallyResult.PtServer) ||
+        (this.rally.isMyServe && (this.rally.result === RallyResult.PtReturner || this.isDoubleFault()));
+  }
 
   getScoreAfterRally() {
     const rally = this.rally;
@@ -116,42 +120,43 @@ export class RallyContext {
     return this.rally.isMyServe;
   }
 
-  // getPlotForNextRally() {
-  //   const myGamePt = isSubjectGamePoint(this.scoreBeforeRally.p1, this.scoreBeforeRally.p2);
-  //   const oppoGamePt = isSubjectGamePoint(this.scoreBeforeRally.p2, this.scoreBeforeRally.p1);
+  getPlotForNextRally() {
+    const myGamePt = isSubjectGamePoint(this.scoreBeforeRally.p1, this.scoreBeforeRally.p2);
+    const oppoGamePt = isSubjectGamePoint(this.scoreBeforeRally.p2, this.scoreBeforeRally.p1);
+    if (!myGamePt && !oppoGamePt) {
+      return;
+    }
+    const winnerIsMe = this.winnerIsMe();
+    const winnerIsOppo = this.winnerIsOppo();
+    if (!winnerIsMe && !winnerIsOppo) {
+      return;
+    }
 
-  //   const isMyPlot = (
-  //     this.scoreBeforeRally.isServerPt && !this.rally.isMyServe) ||
-  //     (this.scoreBeforeRally.isReturnerPt && this.rally.isMyServe);
-  //   return {
-  //     text: converting ? 'Converted' : '',
-  //     isMyPlot: isMyPlot,
-  //   };
-  // }
+    return {
+      text: 'Converted',
+      isMyPlot: winnerIsMe,
+    };
+  }
 
   toPlot() {
-    const strs = [];
-
     const myGamePt = isSubjectGamePoint(this.scoreBeforeRally.p1, this.scoreBeforeRally.p2);
     const oppoGamePt = isSubjectGamePoint(this.scoreBeforeRally.p2, this.scoreBeforeRally.p1);
     const isSetPt = isSubjectSetPoint(this.scoreBeforeRally.p1, this.scoreBeforeRally.p2) || isSubjectSetPoint(this.scoreBeforeRally.p2, this.scoreBeforeRally.p1);
     const myServeGame = this.isMyServeGame();
     const isBreakPt = (myGamePt && !myServeGame) || (oppoGamePt && myServeGame);
     const emphasis = isBreakPt ? '*' : '';
-    let isMyPlot = false;
-    if (myGamePt || oppoGamePt) {
-      if (isSetPt) {
-        strs.push(`${emphasis}Set Pt`);
-      } else if (isBreakPt) {
-        strs.push('Break pt');
-      } else {
-        strs.push(`Game Pt`);
-      }
-      isMyPlot = myGamePt;
+    if (!myGamePt && !oppoGamePt) {
+      return;
+    }
+    let text = 'Game Pt';
+    if (isSetPt) {
+      text = `${emphasis}Set Pt`;
+    } else if (isBreakPt) {
+      text = 'Break pt';
     }
     return {
-      text: strs.join(' '),
-      isMyPlot: isMyPlot,
+      text: text,
+      isMyPlot: myGamePt,
     };
   }
 }
@@ -187,12 +192,12 @@ export function updateSubjectWin(subjectScore: PersonScore, otherScore: PersonSc
   otherScore.serve = 0;
 }
 
-export function isSubjectGamePoint(subjectScore: PersonScore, otherScore: PersonScore) {
+function isSubjectGamePoint(subjectScore: PersonScore, otherScore: PersonScore) {
   let deuceScore = isTieBreakTime(subjectScore, otherScore) ? 6 : 3;
   return subjectScore.points >= deuceScore && subjectScore.points - otherScore.points >= 1;
 }
 
-export function isSubjectSetPoint(subjectScore: PersonScore, otherScore: PersonScore) {
+function isSubjectSetPoint(subjectScore: PersonScore, otherScore: PersonScore) {
   if (!isSubjectGamePoint(subjectScore, otherScore)) {
     return false;
   }

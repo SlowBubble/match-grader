@@ -117,7 +117,6 @@ export class GradebookUi extends HTMLElement {
   handleKeydown(evt: KeyboardEvent) {
     this.handleKeydownWithoutChanges(evt);
     this.handleKeydownWithSheetChanges(evt);
-    console.log(this.gradebookMgr.project.cursor)
   }
 
   async handleKeydownWithoutChanges(evt: KeyboardEvent) {
@@ -287,7 +286,6 @@ export class GradebookUi extends HTMLElement {
   }
 
   private promoteRally() {
-    // TODO use win based on server
     if (!this.inputStartTime) {
       console.warn('cannot promote rally without inputStartTime');
       return;
@@ -352,6 +350,11 @@ export class GradebookUi extends HTMLElement {
     // The latest rallyContext should only have score and not a rally.
     const latestRallyCtx = rallyContexts[0];
     const score = latestRallyCtx.scoreBeforeRally;
+    let latestPlot = latestRallyCtx.toPlot();
+    if (!latestPlot && 1 < rallyContexts.length) {
+      const prevRallyCtx = rallyContexts[1];
+      latestPlot = prevRallyCtx.getPlotForNextRally();
+    }
 
     const row = [
       new Cell(''),
@@ -370,13 +373,14 @@ export class GradebookUi extends HTMLElement {
       new Cell(''),
       new Cell(''),
       new Cell(''),
-      new Cell(score ? latestRallyCtx.toPlot().text : '', makeOpts({
-        alignRight: !latestRallyCtx.toPlot().isMyPlot})),
+      new Cell(latestPlot?.text, makeOpts({
+        alignRight: !latestPlot?.isMyPlot})),
       new Cell(''),
     ];
     rows.push(row);
 
-    rallyContexts.slice(1).forEach((rallyCtx, rallyIdx) => {
+    const ralliedContexts =  rallyContexts.slice(1);
+    ralliedContexts.forEach((rallyCtx, rallyIdx) => {
       const rally = rallyCtx.rally;
       const score = rallyCtx.scoreBeforeRally;
       const rallyIsDoubleFault = rallyCtx.isDoubleFault();
@@ -385,7 +389,15 @@ export class GradebookUi extends HTMLElement {
         || rally.result === RallyResult.PtReturner);
       const winnerIsMe = (rally.isMyServe && rally.result === RallyResult.PtServer) ||
         (!rally.isMyServe && (rally.result === RallyResult.PtReturner || rallyIsDoubleFault));
-      const plot = rallyCtx.toPlot();
+      let plot;
+      if (rallyIsPoint) {
+        plot = rallyCtx.toPlot();
+      }
+      if (!plot && rallyIdx + 1 < ralliedContexts.length) {
+        const prevRallyCtx = ralliedContexts[rallyIdx + 1];
+        plot = prevRallyCtx.getPlotForNextRally();
+      }
+
       const server = rally.isMyServe ? myName :
           `${"".padStart(myName.length, "_")}${oppoName}`;
       const row = [
@@ -401,10 +413,8 @@ export class GradebookUi extends HTMLElement {
         alignRight: !winnerIsMe, removeTopBorder: !rallyIsPoint})),
         new Cell(getShotRatingStr(false, rallyCtx), makeOpts({
           alignRight: winnerIsMe, removeTopBorder: !rallyIsPoint})),
-        // TODO think of a better way to not special case Converted.
-        // E.g. not rely on rallyIsPoint to filter at all. 
-        new Cell(rallyIsPoint || plot.text === 'Converted' ? plot.text : '', makeOpts({
-          alignRight: !plot.isMyPlot, removeTopBorder: !rallyIsPoint})),
+        new Cell(plot?.text, makeOpts({
+          alignRight: !plot?.isMyPlot, removeTopBorder: !rallyIsPoint})),
         new Cell(getRiskLevelStr(rallyCtx), makeOpts({
         alignRight: !winnerIsMe, removeTopBorder: !rallyIsPoint})),
       ];
