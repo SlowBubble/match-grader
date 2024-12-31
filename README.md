@@ -25,9 +25,6 @@
 - Clone project
 - Multiple videos
 
-
-
-
 ## P2
 
 - Remove Score deps from Rally
