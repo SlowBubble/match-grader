@@ -1,0 +1,7 @@
+[
+  "Put a menu button on the side of the youtube-container",
+  "Move the \"Add youtube video button\" into the Menu list, so that it will be shown when I hover on the menu button",
+  "Add the keyboard shortcut cmd+shift+s to clone the current project.\n",
+  "Fix:\n- newId should use current date's string\n- clone the project by using toJson and deserialize\n- id field is wrong, use projectInfo\n- saveProject should be save",
+  "- Use (new Date()).toISOString() for newId\n- Instead of cloning, just update the id in this.gradebookMgr.project.projectInfo\n- clear the owner field\n- save without any argument\n- update href to use # instead of ?"
+]
