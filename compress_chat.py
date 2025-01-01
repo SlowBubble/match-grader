@@ -13,8 +13,8 @@ def extract_messages(chat_file):
     
     # Write one message per line
     with open('chat_compressed.json', 'w') as f:
-        for msg in messages:
-            f.write(json.dumps(msg) + '\n')
+        json.dump(messages, f, indent=2)
+        f.write('\n')
     
     # Delete the input file after processing
     os.remove(chat_file)

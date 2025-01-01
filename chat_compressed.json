@@ -1,3 +1,6 @@
-"Write a script to extract only the requests' message' text from chat.json into a json list of messages (1 per line)"
-"It doesn't work. Use requests field"
-"fix the one message per line; currently everything is in 1 line."
+[
+  "Write a script to extract only the requests' message' text from chat.json into a json list of messages (1 per line)",
+  "It doesn't work. Use requests field",
+  "fix the one message per line; currently everything is in 1 line.",
+  "can you also delete the chat_file at the end"
+]
