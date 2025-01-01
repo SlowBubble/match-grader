@@ -12,6 +12,7 @@ import { Time } from "./models/Time";
 // Top-level UI to handle everything
 export class GradebookUi extends HTMLElement {
   private youtubePlayerUi: YoutubePlayerUi = new YoutubePlayerUi;
+  private currentUrlIdx = 0;
 
   private inputStartTime: Time | null = null;
   private gradebookMgr = new GradebookMgr;
@@ -275,18 +276,28 @@ export class GradebookUi extends HTMLElement {
       return;
     }
     this.gradebookMgr.project.matchData.urls.push(url);
-    this.updateYoutubePlayer();
+    if (this.gradebookMgr.project.matchData.urls.length === 1) {
+      // Only update player for first video, subsequent ones will play automatically
+      this.updateYoutubePlayer();
+    }
   }
 
   private updateYoutubePlayer() {
-    if (this.gradebookMgr.project.matchData.urls.length < 1) {
+    const urls = this.gradebookMgr.project.matchData.urls;
+    if (urls.length < 1) {
       return;
     }
-    const {success, id} = extractYoutubeId(this.gradebookMgr.project.matchData.urls[0]);
+    const {success, id} = extractYoutubeId(urls[this.currentUrlIdx]);
     if (!success) {
       return;
     }
-    this.youtubePlayerUi.initYoutubePlayer(id);
+    this.youtubePlayerUi.initYoutubePlayer(id, this.currentUrlIdx > 0);  // autoplay=true for subsequent videos
+    this.youtubePlayerUi.onEnd(() => {
+      if (this.currentUrlIdx < urls.length - 1) {
+        this.currentUrlIdx++;
+        this.updateYoutubePlayer();
+      }
+    });
   }
 
   private getNowMs() {

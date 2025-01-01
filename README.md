@@ -3,12 +3,18 @@
 
 ## Doing
 
-- Multiple videos
+### Support Multiple videos
 
+2. Change getNowMs to getNowTime and change the usage.
+3. Leave formatSecondsToTimeString usage unchanged.
+4. Leave getDurationStr unchanged since start and end of a rally should not span 2 videos.
 
 ## Done
 
-- Clone project
+### Support Multiple videos
+
+1. Have youtubePlayerUi notify listener call initYoutubePlayer with the next video id.
+  - Also have an option for initYoutubePlayer to auto start this next video.
 
 ## P1
 
