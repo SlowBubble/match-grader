@@ -1,4 +1,5 @@
 [
-  "create a method that takes in a time and if it's different from currentUrlIdx, then initYoutubePlayer with the correct video Id and then moveTo to time's ms.",
-  "fix\n- no need to pass urlIdx in. It's inside Time\n- don't set timeout; use await"
+  "Move the non-class functions to gradebook_util",
+  "write out the whole thing",
+  "PLease don't abbreviat (// Other existing code in the original file\n)"
 ]
