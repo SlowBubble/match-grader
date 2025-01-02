@@ -10,11 +10,15 @@
     - Can use up arrow to reveal more
   - up, down for the entire row
     - automatically jump to the start time when you press up or down
-  - left, right will move video.
+
+    public showOnlyStartTimeForCurrentRally: boolean = false,
+    public leftRightArrowMovesVideo: boolean = false,
+    public upDownArrowJumpsToStartTime: boolean = false,
+    public visibleColumns: ColumnName[]
 
 ## Done
 
-GradebookUiConfig
+public leftRightArrowMovesVideo: boolean = false,
 
 ## P1
 

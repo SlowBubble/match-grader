@@ -1,4 +1,3 @@
-
 export class GradebookUiConfig {
   constructor(
     public showOnlyStartTimeForCurrentRally: boolean = false,
