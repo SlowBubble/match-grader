@@ -1,5 +1,11 @@
 [
   "Move the non-class functions to gradebook_util",
   "write out the whole thing",
-  "PLease don't abbreviat (// Other existing code in the original file\n)"
+  "PLease don't abbreviat (// Other existing code in the original file\n)",
+  "Create ColumnName Enum based on this info:\nexport const SERVER_COL = 0;\nexport const SET_SCORE_COL = 1;\nexport const GAME_SCORE_COL = 2;\nexport const START_TIME_COL = 3;\nexport const END_TIME_COL = 4;\nexport const RESULT_COL = 5;\nexport const WINNER_LAST_SHOT_COL = 6;\nexport const LOSER_PREVIOUS_SHOT_COL = 7;\nexport const PLOT_COL = 8;\nexport const WINNER_RISK_COL = 9;",
+  "Change the enum values to be string value, same as the key",
+  "Write a function that takes a column name key and returns the column name value",
+  "get rid of the values in the ColumnName enum",
+  "Create GradebookUiConfig with the following public fields:\n- VisibleColumns: ColumnName[]\n- ShowOnlyStartTimeForCurrentRally: bool\n- LeftRightArrowMovesVideo: bool\n- UpDownArrowJumpsToStartTime: bool",
+  "Can we modify to have a constructor to init thee 4 public fields"
 ]

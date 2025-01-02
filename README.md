@@ -12,16 +12,9 @@
     - automatically jump to the start time when you press up or down
   - left, right will move video.
 
-### GradebookUiConfig fields for watch mode
-
-- VisibleColumns
-  - Need to add readable IDs (unchanging enums) instead of using idx
-- ShowOnlyStartTimeForCurrentRally
-- LeftRightArrowMovesVideo
-- UpDownArrowJumpsToStartTime
-
 ## Done
 
+GradebookUiConfig
 
 ## P1
 
