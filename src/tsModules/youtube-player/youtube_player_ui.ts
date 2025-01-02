@@ -78,7 +78,6 @@ export class YoutubePlayerUi extends HTMLElement {
   setIframeDims(width: number) {
     const height = Math.round(width * 9 / 16);
     this.youtubePlayer.setSize(width, height);
-    console.log(this.youtubePlayer)
   }
   getIframeWidth() {
     const iframe = this.querySelector(`#${iframeId}`) as HTMLIFrameElement;

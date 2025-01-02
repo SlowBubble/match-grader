@@ -8,9 +8,11 @@ import { getRiskLevelStr, getShotRatingStr } from "./models/risk_level";
 import { RallyResult, rallyResultToIndex, rallyResultVals } from "./models/rally";
 import { Time } from "./models/Time";
 import { mod, formatSecondsToTimeString, extractYoutubeId } from "./gradebook_util";
+import { GradebookUiConfig } from "./gradebook_ui_config";
 
 // Top-level UI to handle everything
 export class GradebookUi extends HTMLElement {
+  public config: GradebookUiConfig = new GradebookUiConfig;
   private youtubePlayerUi: YoutubePlayerUi = new YoutubePlayerUi;
   private currentUrlIdx = 0;
 

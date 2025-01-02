@@ -3,7 +3,7 @@
 
 ## Doing
 
-- Watch Mode: add a GradebookUiConfig for Watch and Edit
+- Watch Mode: Implement GradebookUiConfig for Watch and Edit
   - Remove Start, Result, Winner's, Loser's.
   - Reveal only the start time for the current point
     - reveal everything for the previous points
