@@ -212,10 +212,10 @@ export class GradebookUi extends HTMLElement {
     }
     const cursor = this.gradebookMgr.project.cursor;
     if (cursor.colIdx === START_TIME_COL) {
-      this.youtubePlayerUi.moveTo(rally.startTime.ms);
+      this.moveTo(rally.startTime);
       this.gradebookMgr.moveRallyIdx(-1);
     } else if (cursor.colIdx === END_TIME_COL) {
-      this.youtubePlayerUi.moveTo(rally.endTime.ms);
+      this.moveTo(rally.endTime);
       this.gradebookMgr.moveRallyIdx(-1);
     } else if (cursor.colIdx === RESULT_COL) {
       if (rally.result === RallyResult.PtReturner || rally.result === RallyResult.PtServer) {
@@ -298,6 +298,21 @@ export class GradebookUi extends HTMLElement {
         this.updateYoutubePlayer();
       }
     });
+  }
+
+  private async moveTo(time: Time) {
+    if (time.videoIndex !== this.currentUrlIdx) {
+      this.currentUrlIdx = time.videoIndex;
+      const urls = this.gradebookMgr.project.matchData.urls;
+      const {success, id} = extractYoutubeId(urls[this.currentUrlIdx]);
+      if (!success) {
+        return;
+      }
+      await this.youtubePlayerUi.initYoutubePlayer(id, true);
+      this.youtubePlayerUi.moveTo(time.ms);
+    } else {
+      this.youtubePlayerUi.moveTo(time.ms);
+    }
   }
 
   private getNowTime() {

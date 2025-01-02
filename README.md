@@ -3,21 +3,17 @@
 
 ## Doing
 
-3. Move to the correct video for a given time.
-
-### Support Multiple videos
-
-3. Leave formatSecondsToTimeString usage unchanged.
-4. Leave getDurationStr unchanged since start and end of a rally should not span 2 videos.
+- Think of a way to just infer server without storing the data (similar to the score)
+  - 2 fields that default to null:
+    - isMyServeOverride
+    - scoreOverride
+  - UX:
+    - Server data can be overwritten with just a click
+    - Score data can be done with 4 buttons (incre/decrement me or oppo points)
 
 ## Done
 
-2. Change getNowMs to getNowTime and change the usage.
-
-### Support Multiple videos
-
-1. Have youtubePlayerUi notify listener call initYoutubePlayer with the next video id.
-  - Also have an option for initYoutubePlayer to auto start this next video.
+3. Move to the correct video for a given time.
 
 ## P1
 
@@ -30,13 +26,7 @@
     - automatically jump to the start time when you press up or down
   - left, right will move video.
 
-- Think of a way to just infer server without storing the data (similar to the score)
-  - 2 fields that default to null:
-    - isMyServeOverride
-    - scoreOverride
-  - UX:
-    - Server data can be overwritten with just a click
-    - Score data can be done with 4 buttons (incre/decrement me or oppo points)
+
 
 
 ## P2
