@@ -3,13 +3,16 @@
 
 ## Doing
 
+3. Move to the correct video for a given time.
+
 ### Support Multiple videos
 
-2. Change getNowMs to getNowTime and change the usage.
 3. Leave formatSecondsToTimeString usage unchanged.
 4. Leave getDurationStr unchanged since start and end of a rally should not span 2 videos.
 
 ## Done
+
+2. Change getNowMs to getNowTime and change the usage.
 
 ### Support Multiple videos
 

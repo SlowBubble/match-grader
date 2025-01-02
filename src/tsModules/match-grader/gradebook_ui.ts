@@ -300,13 +300,13 @@ export class GradebookUi extends HTMLElement {
     });
   }
 
-  private getNowMs() {
+  private getNowTime() {
     const nowSec = this.youtubePlayerUi.youtubePlayer.getCurrentTime();
-    return Math.round(nowSec * 1000);
+    return new Time(Math.round(nowSec * 1000));
   }
 
   private updateInputStartTime() {
-    this.inputStartTime = new Time(this.getNowMs());
+    this.inputStartTime = this.getNowTime();
     this.renderSheet();
   }
 
@@ -315,9 +315,9 @@ export class GradebookUi extends HTMLElement {
       console.warn('cannot promote rally without inputStartTime');
       return;
     }
-    const nowMs = this.getNowMs();
-    const guessRes = nowMs - this.inputStartTime.ms < 3500 ? RallyResult.Fault : RallyResult.PtServer;
-    this.gradebookMgr.project.matchData.addRally(this.inputStartTime, new Time(nowMs), guessRes);
+    const nowTime = this.getNowTime();
+    const guessRes = nowTime.ms - this.inputStartTime.ms < 3500 ? RallyResult.Fault : RallyResult.PtServer;
+    this.gradebookMgr.project.matchData.addRally(this.inputStartTime, nowTime, guessRes);
     this.gradebookMgr.project.cursor.rallyIdx = this.gradebookMgr.getRelevantRallies().length - 1;
     this.gradebookMgr.project.cursor.colIdx = RESULT_COL;
     this.gradebookMgr.project.cursor.rallyIdx = 0;
