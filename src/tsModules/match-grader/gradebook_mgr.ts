@@ -39,6 +39,7 @@ export class GradebookMgr {
     if (json) {
       this.project = GradebookProject.deserialize(json);
     } else {
+      // TODO add this back if we ever run into race condition saving a new project.
       // const projectJson = this.project.toJson();
       // try {
       //   await dao.set(id, projectJson);
@@ -48,13 +49,16 @@ export class GradebookMgr {
     }
     return finalProjectId;
   }
+
   getRelevantRallies() {
     return this.project.matchData.rallies.toReversed();
   }
+
   getCurrentRally() {
     const cursor = this.project.cursor;
     return this.getRelevantRallies()[cursor.rallyIdx];
   }
+
   moveRallyIdx(num = 1) {
     const cursor = this.project.cursor;
     cursor.rallyIdx += num;

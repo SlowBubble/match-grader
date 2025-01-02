@@ -3,21 +3,7 @@
 
 ## Doing
 
-- Think of a way to just infer server without storing the data (similar to the score)
-  - 2 fields that default to null:
-    - isMyServeOverride
-    - scoreOverride
-  - UX:
-    - Server data can be overwritten with just a click
-    - Score data can be done with 4 buttons (incre/decrement me or oppo points)
-
-## Done
-
-3. Move to the correct video for a given time.
-
-## P1
-
-- Watch Mode: should I have a GradebookUiConfig for Watch and Edit
+- Watch Mode: add a GradebookUiConfig for Watch and Edit
   - Remove Start, Result, Winner's, Loser's.
   - Reveal only the start time for the current point
     - reveal everything for the previous points
@@ -26,8 +12,24 @@
     - automatically jump to the start time when you press up or down
   - left, right will move video.
 
+### GradebookUiConfig fields for watch mode
+
+- VisibleColumns
+  - Need to add readable IDs (unchanging enums) instead of using idx
+- ShowOnlyStartTimeForCurrentRally
+- LeftRightArrowMovesVideo
+- UpDownArrowJumpsToStartTime
+
+## Done
 
 
+## P1
+
+- Advanced stats like set pt number, double fault number.
+  - First serve %
+  - First serve win %
+  - Second serve %
+  - Second serve win %
 
 ## P2
 
@@ -37,8 +39,12 @@
 - Bold the border between games and bolder between sets
 - color the table (using thicker right border for the duration)
 
+- If a serve is modified, confirm if they want to change it for the rest of the points.
+- scoreOverride
+  - Score data can be done with 4 buttons (incre/decrement me or oppo points)
+
 - Think about a final shot normalized rating columns
-- Advanced stats like set pt number, double fault number.
+
 - Undo, Unsave status
 - Project title above menu button
   - Edit

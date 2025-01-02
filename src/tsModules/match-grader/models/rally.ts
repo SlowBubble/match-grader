@@ -36,6 +36,7 @@ export class Rally {
     public result = RallyResult.Fault,
     public isMyServe = false,
     public stat: RallyStat = new RallyStat(),
+    // TODO add scoreOverride: Score | null = null,
   ) {}
 
   static deserialize(json: any) {
