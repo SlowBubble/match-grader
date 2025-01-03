@@ -406,10 +406,11 @@ export class GradebookUi extends HTMLElement {
 
     let firstRallyIdxToShow = 1;
     if (this.config.hideFutureRallies) {
-      firstRallyIdxToShow = Math.max(cursor.rallyIdx - 1, 1);
+      // TODO explain why it is rallyIdx + 1.
+      firstRallyIdxToShow = Math.max(cursor.rallyIdx + 1, 1);
     }
-    const ralliedContexts = rallyContexts.slice(firstRallyIdxToShow);
-    ralliedContexts.forEach((rallyCtx, rallyIdx) => {
+    const slicedContexts = rallyContexts.slice(firstRallyIdxToShow);
+    slicedContexts.forEach((rallyCtx, slicedIdx) => {
       const rallyIsPoint = rallyCtx.isDoubleFault() ||
         rallyCtx.rally.result === RallyResult.PtServer ||
         rallyCtx.rally.result === RallyResult.PtReturner;
@@ -417,16 +418,19 @@ export class GradebookUi extends HTMLElement {
       if (rallyIsPoint) {
         plot = rallyCtx.toPlot();
       }
-      if (!plot && rallyIdx + 1 < ralliedContexts.length) {
-        const prevRallyCtx = ralliedContexts[rallyIdx + 1];
+      let prevRallyCtx = null;
+      if (!plot && slicedIdx + 1 < slicedContexts.length) {
+        prevRallyCtx = slicedContexts[slicedIdx + 1];
         plot = prevRallyCtx.getPlotForNextRally();
       }
 
       rows.push(genRallyRow({
+        prevRallyCtx,
         rallyCtx,
         myName,
         oppoName,
-        rallyIdx: rallyIdx + firstRallyIdxToShow - 1,
+        // Need the absolute idx because we are dealing with the cursor
+        rallyIdx: slicedIdx + firstRallyIdxToShow - 1,
         cursor,
         plot,
       }, this.config));

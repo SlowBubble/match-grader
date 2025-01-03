@@ -1,7 +1,7 @@
 
 
 import { GradebookUi } from "./tsModules/match-grader/gradebook_ui";
-import { GradebookUiConfig, visibleColumnsForWatchMode } from "./tsModules/match-grader/gradebook_ui_config";
+import { GradebookUiConfig, spoilerColumnsForWatchMode, visibleColumnsForWatchMode } from "./tsModules/match-grader/gradebook_ui_config";
 import { getUrlParamsMap } from "./tsModules/url-state/url";
 
 GradebookUi;
@@ -22,6 +22,7 @@ async function main() {
   matchGraderUi.config.hideFutureRallies = true;
   matchGraderUi.config.enableMutation = false;
   matchGraderUi.config.visibleColumns = visibleColumnsForWatchMode;
+  matchGraderUi.config.spoilerColumns = spoilerColumnsForWatchMode;
 
   document.body.addEventListener(
     'keydown', evt => matchGraderUi.handleKeydown(evt));

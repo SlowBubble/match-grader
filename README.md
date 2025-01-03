@@ -13,6 +13,8 @@
 
 ## P1
 
+- Design sorting
+
 - Advanced stats like set pt number, double fault number.
 - Think about the UX for adding these stats (start with an overlay when you press a keyboard shortcut):
   - % serve pts won
@@ -25,6 +27,8 @@
     - slice by first vs second and serve vs return
   - % free pts you gave to the opponent
     - slice by first vs second and serve vs return
+
+- Consider making upDownArrowJumpsToStartTime = true always (remove impl that uses it).
 
 ## P2
 

@@ -17,7 +17,7 @@ export function genHeaderCol(colName: ColumnName): Cell {
     case ColumnName.START_TIME:
       return new Cell('Start');
     case ColumnName.END_TIME:
-      return new Cell('End');
+      return new Cell('Duration');
     case ColumnName.RESULT:
       return new Cell('Result');
     case ColumnName.WINNER_LAST_SHOT:
@@ -86,6 +86,7 @@ export function genFirstRow(data: FirstRowData, config: GradebookUiConfig): Cell
 }
 
 export interface RallyRowData {
+  prevRallyCtx: RallyContext | null;
   rallyCtx: RallyContext;
   myName: string;
   oppoName: string;
@@ -97,10 +98,14 @@ export interface RallyRowData {
 export function genRallyRow(data: RallyRowData, config: GradebookUiConfig): Cell[] {
   const rally = data.rallyCtx.rally;
   const score = data.rallyCtx.scoreBeforeRally;
+  let prevRallyIsPoint = true;
+  if (data.prevRallyCtx) {
+    const prevRallyIsDoubleFault = data.prevRallyCtx.isDoubleFault();
+    prevRallyIsPoint = (
+      prevRallyIsDoubleFault || data.prevRallyCtx.rally.result === RallyResult.PtServer
+      || data.prevRallyCtx.rally.result === RallyResult.PtReturner);
+  }
   const rallyIsDoubleFault = data.rallyCtx.isDoubleFault();
-  const rallyIsPoint = (
-    rallyIsDoubleFault || rally.result === RallyResult.PtServer
-    || rally.result === RallyResult.PtReturner);
   const winnerIsMe = (rally.isMyServe && rally.result === RallyResult.PtServer) ||
     (!rally.isMyServe && (rally.result === RallyResult.PtReturner || rallyIsDoubleFault));
 
@@ -112,14 +117,14 @@ export function genRallyRow(data: RallyRowData, config: GradebookUiConfig): Cell
     switch (col) {
       case ColumnName.SERVER:
         return new Cell(
-          rallyIsPoint ? server : '', 
-          makeOpts({ removeTopBorder: !rallyIsPoint, selected }));
+          prevRallyIsPoint ? server : '', 
+          makeOpts({ removeBottomBorder: !prevRallyIsPoint, selected }));
       case ColumnName.SET_SCORE:
         return new Cell(data.rallyCtx.toGameScoreStr(), 
-          makeOpts({ removeTopBorder: !rallyIsPoint, selected }));
+          makeOpts({ removeBottomBorder: !prevRallyIsPoint, selected }));
       case ColumnName.GAME_SCORE:
-        return new Cell(rallyIsPoint ? score.toPointsStr() : '', 
-          makeOpts({ removeTopBorder: !rallyIsPoint, selected }));
+        return new Cell(prevRallyIsPoint ? score.toPointsStr() : '', 
+          makeOpts({ removeBottomBorder: !prevRallyIsPoint, selected }));
       case ColumnName.START_TIME:
         return new Cell(formatSecondsToTimeString(rally.startTime.ms),
           makeOpts({ selected }));
@@ -133,16 +138,16 @@ export function genRallyRow(data: RallyRowData, config: GradebookUiConfig): Cell
           makeOpts({ alignCenter: true, selected }));
       case ColumnName.WINNER_LAST_SHOT:
         return new Cell(getShotRatingStr(true, data.rallyCtx),
-          makeOpts({ alignRight: !winnerIsMe, removeTopBorder: !rallyIsPoint, selected }));
+          makeOpts({ alignRight: !winnerIsMe, removeBottomBorder: !prevRallyIsPoint, selected }));
       case ColumnName.LOSER_PREVIOUS_SHOT:
         return new Cell(getShotRatingStr(false, data.rallyCtx),
-          makeOpts({ alignRight: winnerIsMe, removeTopBorder: !rallyIsPoint, selected }));
+          makeOpts({ alignRight: winnerIsMe, removeBottomBorder: !prevRallyIsPoint, selected }));
       case ColumnName.PLOT:
         return new Cell(data.plot?.text,
-          makeOpts({ alignRight: !data.plot?.isMyPlot, removeTopBorder: !rallyIsPoint, selected }));
+          makeOpts({ alignRight: !data.plot?.isMyPlot, removeBottomBorder: !prevRallyIsPoint, selected }));
       case ColumnName.WINNER_RISK:
         return new Cell(getRiskLevelStr(data.rallyCtx),
-          makeOpts({ alignRight: !winnerIsMe, removeTopBorder: !rallyIsPoint, selected }));
+          makeOpts({ alignRight: !winnerIsMe, removeBottomBorder: !prevRallyIsPoint, selected }));
       default:
         return new Cell('', makeOpts({ selected }));
     }

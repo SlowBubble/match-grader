@@ -31,7 +31,7 @@ export class CellOpts {
     public selected = false,
     public alignRight = false,
     public alignCenter = false,
-    public removeTopBorder = false,
+    public removeBottomBorder = false,
   ) {}
 }
 
@@ -40,14 +40,14 @@ export function makeOpts({
   selected = false,
   alignRight = false,
   alignCenter = false,
-  removeTopBorder = false,
+  removeBottomBorder = false,
 }: any = {}) {
   return new CellOpts(
     setupFunc,
     selected,
     alignRight,
     alignCenter,
-    removeTopBorder,
+    removeBottomBorder,
   );
 }
 
@@ -77,8 +77,8 @@ function createTable(rowsOfCells: Cell[][], onCellClickFunc: Function) {
       if (cell.opts.alignCenter) {
         cellHtml.classList.add('align-center');
       }
-      if (cell.opts.removeTopBorder) {
-        cellHtml.classList.add('remove-top-border');
+      if (cell.opts.removeBottomBorder) {
+        cellHtml.classList.add('remove-bottom-border');
       }
       cellHtml.onclick = () => onCellClickFunc(new CellLoc(rowIdx, colIdx));
       rowHtml.appendChild(cellHtml);
@@ -91,6 +91,7 @@ function createTable(rowsOfCells: Cell[][], onCellClickFunc: Function) {
   return table;
 }
 
+// .selected needs to be at the bottom to override other border removals
 const tableStyle = `
 <style>
 table {
@@ -99,12 +100,8 @@ table {
 }
 
 table, th, td {
-  border-top: 1px solid;
+  border-bottom: 1px solid;
   border-right: 1px solid;
-}
-
-.selected {
-  border: 4px solid;
 }
 
 .align-right {
@@ -115,8 +112,12 @@ table, th, td {
   text-align: center;
 }
 
-.remove-top-border {
-  border-top: 0px solid;
+.remove-bottom-border {
+  border-bottom: 0px solid;
+}
+
+.selected {
+  border: 4px solid;
 }
 </style>
 `;
