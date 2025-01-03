@@ -4,15 +4,16 @@
 ## Doing
 
 - Watch Mode: 
-  - Implement visibleColumns
-    - Have a function that switch case into computing the cell for each ColumnName, so we can just iterate thru visibleColumns (- spoilerColumns beyond current rally).
-    - Also have 1 for computing the headers
-    - Also have 1 for computing the non-promoted row.
+  - fix moving of cursor left/right.
+  - showNewRow = false
   - Implement spoilerColumns
 
 ## Done
 
-public upDownArrowJumpsToStartTime: boolean = false,
+- Implement visibleColumns
+  - Have a function that switch case into computing the cell for each ColumnName, so we can just iterate thru visibleColumns (- spoilerColumns beyond current rally).
+  - Also have 1 for computing the headers
+  - Also have 1 for computing the non-promoted row.
 
 ## P1
 

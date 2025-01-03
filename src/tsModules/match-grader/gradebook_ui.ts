@@ -1,15 +1,15 @@
 import { matchKey } from "../key-match/key_match";
 import { YoutubePlayerUi } from "../youtube-player/youtube_player_ui";
-import { Cell, CellLoc, makeOpts, MatchSheetUi } from "./match_sheet_ui";
+import { Cell, CellLoc, MatchSheetUi } from "./match_sheet_ui";
 import { GradebookMgr } from "./gradebook_mgr";
 import { END_TIME_COL, LOSER_PREVIOUS_SHOT_COL, RATING_SCALE, RESULT_COL, SERVER_COL, START_TIME_COL, WINNER_LAST_SHOT_COL } from "./constants";
 import { EphemeralBanner } from "../ephemeral-banner";
-import { getRiskLevelStr, getShotRatingStr } from "./models/risk_level";
 import { RallyResult, rallyResultToIndex, rallyResultVals } from "./models/rally";
 import { Time } from "./models/Time";
-import { mod, formatSecondsToTimeString, extractYoutubeId } from "./gradebook_util";
+import { mod, extractYoutubeId } from "./gradebook_util";
 import { GradebookUiConfig } from "./gradebook_ui_config";
 import { htmlTemplate } from "./gradebook_ui_template";
+import { genFirstRow, genHeaderCol, genRallyRow } from "./gradebook_col";
 
 // Top-level UI to handle everything
 export class GradebookUi extends HTMLElement {
@@ -319,21 +319,7 @@ export class GradebookUi extends HTMLElement {
     const project = this.gradebookMgr.project;
     const cursor = project.cursor;
     const rows = [];
-    const headerRow = [
-      new Cell('Server'),
-      new Cell('Set'),
-      new Cell('Game Score'),
-
-      new Cell('Start'),
-      new Cell('End'),
-      new Cell('Result'),
-      new Cell(`Winner's`),
-      // new Cell(`Winner's last shot`),
-      new Cell(`Loser's`),
-      // new Cell(`Loser's previous shot`),
-      new Cell('Plot'),
-      new Cell(`Winner's risk level`),
-    ];
+    const headerRow = this.config.visibleColumns.map(colName => genHeaderCol(colName));
     rows.push(headerRow);
 
     const myName = project.matchData.myName;
@@ -342,12 +328,6 @@ export class GradebookUi extends HTMLElement {
     rallyContexts.reverse();
 
     const cursorAtTop = !this.gradebookMgr.getCurrentRally();
-    const hasInputStartTime = this.inputStartTime !== null;
-    const startTime = hasInputStartTime ?
-      formatSecondsToTimeString(this.inputStartTime!.ms) :
-      `<button id='input-start-time'>(Enter)</button>`;
-    const endTime = hasInputStartTime ?
-      `<button id='input-end-time'>(Enter)</button>` : '';
     const setupInputStartTimeBtn = () => {
       const btn = this.querySelector('#input-start-time') as HTMLButtonElement;
       if (btn) {
@@ -363,46 +343,26 @@ export class GradebookUi extends HTMLElement {
 
     // The latest rallyContext should only have score and not a rally.
     const latestRallyCtx = rallyContexts[0];
-    const score = latestRallyCtx.scoreBeforeRally;
     let latestPlot = latestRallyCtx.toPlot();
     if (!latestPlot && 1 < rallyContexts.length) {
       const prevRallyCtx = rallyContexts[1];
       latestPlot = prevRallyCtx.getPlotForNextRally();
     }
 
-    const row = [
-      new Cell(''),
-      new Cell(latestRallyCtx.toGameScoreStr()),
-      new Cell(score.toPointsStr()),
-
-      new Cell(startTime, makeOpts({
-        setupFunc: setupInputStartTimeBtn,
-        selected: cursorAtTop && !hasInputStartTime,
-      })),
-      new Cell(endTime, makeOpts({
-        setupFunc: setupInputEndTimeBtn,
-        selected: cursorAtTop && hasInputStartTime,
-        
-      })),
-      new Cell(''),
-      new Cell(''),
-      new Cell(''),
-      new Cell(latestPlot?.text, makeOpts({
-        alignRight: !latestPlot?.isMyPlot})),
-      new Cell(''),
-    ];
-    rows.push(row);
+    rows.push(genFirstRow({
+      latestRallyCtx,
+      latestPlot,
+      inputStartTime: this.inputStartTime,
+      cursorAtTop,
+      setupInputStartTimeBtn,
+      setupInputEndTimeBtn
+    }, this.config.visibleColumns));
 
     const ralliedContexts =  rallyContexts.slice(1);
     ralliedContexts.forEach((rallyCtx, rallyIdx) => {
-      const rally = rallyCtx.rally;
-      const score = rallyCtx.scoreBeforeRally;
-      const rallyIsDoubleFault = rallyCtx.isDoubleFault();
-      const rallyIsPoint = (
-        rallyIsDoubleFault || rally.result === RallyResult.PtServer
-        || rally.result === RallyResult.PtReturner);
-      const winnerIsMe = (rally.isMyServe && rally.result === RallyResult.PtServer) ||
-        (!rally.isMyServe && (rally.result === RallyResult.PtReturner || rallyIsDoubleFault));
+      const rallyIsPoint = rallyCtx.isDoubleFault() || 
+        rallyCtx.rally.result === RallyResult.PtServer ||
+        rallyCtx.rally.result === RallyResult.PtReturner;
       let plot;
       if (rallyIsPoint) {
         plot = rallyCtx.toPlot();
@@ -412,30 +372,14 @@ export class GradebookUi extends HTMLElement {
         plot = prevRallyCtx.getPlotForNextRally();
       }
 
-      const server = rally.isMyServe ? myName :
-          `${"".padStart(myName.length, "_")}${oppoName}`;
-      const row = [
-        new Cell(
-          rallyIsPoint ? server : '', makeOpts({ removeTopBorder: !rallyIsPoint })),
-        new Cell(rallyCtx.toGameScoreStr(), makeOpts({ removeTopBorder: !rallyIsPoint })),
-        new Cell(rallyIsPoint ? score.toPointsStr() : '', makeOpts({ removeTopBorder: !rallyIsPoint })),
-        new Cell(formatSecondsToTimeString(rally.startTime.ms)),
-        new Cell(`${rally.getDurationStr()}`, makeOpts({alignRight: true})),
-        new Cell(rallyIdx > 0 ? rallyCtx.getResultSymbolStr() : rallyCtx.getResultStr(myName, oppoName),
-            makeOpts({alignCenter: true})),
-        new Cell(getShotRatingStr(true, rallyCtx), makeOpts({
-        alignRight: !winnerIsMe, removeTopBorder: !rallyIsPoint})),
-        new Cell(getShotRatingStr(false, rallyCtx), makeOpts({
-          alignRight: winnerIsMe, removeTopBorder: !rallyIsPoint})),
-        new Cell(plot?.text, makeOpts({
-          alignRight: !plot?.isMyPlot, removeTopBorder: !rallyIsPoint})),
-        new Cell(getRiskLevelStr(rallyCtx), makeOpts({
-        alignRight: !winnerIsMe, removeTopBorder: !rallyIsPoint})),
-      ];
-      row.forEach((cell, colIdx) => {
-        cell.opts.selected = (rallyIdx === cursor.rallyIdx) && (colIdx === cursor.colIdx);
-      });
-      rows.push(row);
+      rows.push(genRallyRow({
+        rallyCtx,
+        myName,
+        oppoName,
+        rallyIdx,
+        cursor,
+        plot,
+      }, this.config.visibleColumns));
     });
     return rows;
   }

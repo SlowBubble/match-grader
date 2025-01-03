@@ -1,3 +1,4 @@
+
 export class GradebookUiConfig {
   constructor(
     public leftRightArrowMovesVideo: boolean = false,
