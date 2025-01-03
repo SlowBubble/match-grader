@@ -57,7 +57,9 @@ export function genFirstRow(data: FirstRowData, config: GradebookUiConfig): Cell
       case ColumnName.SET_SCORE:
         return new Cell(data.latestRallyCtx.toGameScoreStr());
       case ColumnName.GAME_SCORE:
-        return new Cell(score.toPointsStr());
+        return new Cell(score.toPointsStr(), makeOpts({
+          selected: data.cursorAtTop && !config.enableMutation,
+        }));
       case ColumnName.START_TIME:
         if (!config.enableMutation) {
           return emptyCell;
@@ -92,7 +94,7 @@ export interface RallyRowData {
   plot?: {text: string, isMyPlot: boolean};
 }
 
-export function genRallyRow(data: RallyRowData, visibleColumns: ColumnName[]): Cell[] {
+export function genRallyRow(data: RallyRowData, config: GradebookUiConfig): Cell[] {
   const rally = data.rallyCtx.rally;
   const score = data.rallyCtx.scoreBeforeRally;
   const rallyIsDoubleFault = data.rallyCtx.isDoubleFault();
@@ -105,7 +107,7 @@ export function genRallyRow(data: RallyRowData, visibleColumns: ColumnName[]): C
   const server = rally.isMyServe ? data.myName :
     `${"".padStart(data.myName.length, "_")}${data.oppoName}`;
 
-  return visibleColumns.map((col, colIdx) => {
+  return config.visibleColumns.map((col, colIdx) => {
     const selected = (data.rallyIdx === data.cursor.rallyIdx) && (colIdx === data.cursor.colIdx);
     switch (col) {
       case ColumnName.SERVER:
@@ -126,7 +128,7 @@ export function genRallyRow(data: RallyRowData, visibleColumns: ColumnName[]): C
           makeOpts({ alignRight: true, selected }));
       case ColumnName.RESULT:
         return new Cell(
-          data.rallyIdx > 0 ? data.rallyCtx.getResultSymbolStr() : 
+          config.enableMutation && data.rallyIdx > 0 ? data.rallyCtx.getResultSymbolStr() : 
             data.rallyCtx.getResultStr(data.myName, data.oppoName),
           makeOpts({ alignCenter: true, selected }));
       case ColumnName.WINNER_LAST_SHOT:

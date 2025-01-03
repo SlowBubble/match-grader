@@ -15,7 +15,6 @@ export class GradebookMgr {
     const info = this.project.projectInfo;
     const userIsNotOwner = info.owner && info.owner !== auth.currentUser.uid;
     if (userIsNotOwner) {
-      // TODO: add: Try cloning instead (cmd+shift+s).
       return `You are not the owner.`
     }
     info.lastEditedAt = (new Date()).toISOString();
@@ -37,14 +36,6 @@ export class GradebookMgr {
     let finalProjectId = id;
     if (json) {
       this.project = GradebookProject.deserialize(json);
-    } else {
-      // TODO add this back if we ever run into race condition saving a new project.
-      // const projectJson = this.project.toJson();
-      // try {
-      //   await dao.set(id, projectJson);
-      // } catch (err) {
-      //   finalProjectId = await dao.add(projectJson);
-      // }
     }
     return finalProjectId;
   }

@@ -132,7 +132,8 @@ export class GradebookUi extends HTMLElement {
   }
 
   private moveRallyIdxAndVideo(num: number) {
-    this.gradebookMgr.moveRallyIdx(num, this.getColIndex(ColumnName.START_TIME));
+    this.gradebookMgr.moveRallyIdx(
+      num, this.config.enableMutation ? this.getColIndex(ColumnName.START_TIME) : this.getColIndex(ColumnName.GAME_SCORE));
     if (this.config.upDownArrowJumpsToStartTime) {
       this.moveVideoToCurrentRally();
     }
@@ -152,7 +153,6 @@ export class GradebookUi extends HTMLElement {
     } else if (matchKey(evt, 'right')) {
       if (this.config.leftRightArrowMovesVideo) {
         this.getVideoPlayerUi().move(5);
-        return;
       } else {
         this.gradebookMgr.moveColIdx(1, this.config.visibleColumns.length);
       }
@@ -161,7 +161,6 @@ export class GradebookUi extends HTMLElement {
     } else if (matchKey(evt, 'left')) {
       if (this.config.leftRightArrowMovesVideo) {
         this.getVideoPlayerUi().move(-5);
-        return;
       } else {
         this.gradebookMgr.moveColIdx(-1, this.config.visibleColumns.length);
       }
@@ -379,16 +378,23 @@ export class GradebookUi extends HTMLElement {
       latestPlot = prevRallyCtx.getPlotForNextRally();
     }
 
-    rows.push(genFirstRow({
-      latestRallyCtx,
-      latestPlot,
-      inputStartTime: this.inputStartTime,
-      cursorAtTop,
-      setupInputStartTimeBtn,
-      setupInputEndTimeBtn,
-    }, this.config));
+    const hideFirstRow = !cursorAtTop && this.config.hideFutureRallies;
+    if (!hideFirstRow) {
+      rows.push(genFirstRow({
+        latestRallyCtx,
+        latestPlot,
+        inputStartTime: this.inputStartTime,
+        cursorAtTop,
+        setupInputStartTimeBtn,
+        setupInputEndTimeBtn,
+      }, this.config));
+    }
 
-    const ralliedContexts = rallyContexts.slice(1);
+    let firstRallyIdxToShow = 1;
+    if (this.config.hideFutureRallies) {
+      firstRallyIdxToShow = Math.max(cursor.rallyIdx - 1, 1);
+    }
+    const ralliedContexts = rallyContexts.slice(firstRallyIdxToShow);
     ralliedContexts.forEach((rallyCtx, rallyIdx) => {
       const rallyIsPoint = rallyCtx.isDoubleFault() ||
         rallyCtx.rally.result === RallyResult.PtServer ||
@@ -406,10 +412,10 @@ export class GradebookUi extends HTMLElement {
         rallyCtx,
         myName,
         oppoName,
-        rallyIdx,
+        rallyIdx: rallyIdx + firstRallyIdxToShow - 1,
         cursor,
         plot,
-      }, this.config.visibleColumns));
+      }, this.config));
     });
     return rows;
   }

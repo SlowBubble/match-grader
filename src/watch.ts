@@ -19,6 +19,7 @@ async function main() {
   matchGraderUi.config = new GradebookUiConfig;
   matchGraderUi.config.leftRightArrowMovesVideo = true;
   matchGraderUi.config.startFromBeginning = true;
+  matchGraderUi.config.hideFutureRallies = true;
   matchGraderUi.config.enableMutation = false;
   matchGraderUi.config.visibleColumns = visibleColumnsForWatchMode;
 
