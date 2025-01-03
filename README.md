@@ -4,13 +4,12 @@
 ## Doing
 
 - Watch Mode: 
-  - showNewRow = false
   - startFromBeginning = true
   - Implement spoilerColumns
 
 ## Done
 
-- fix moving of cursor left/right.
+- enableMutation = false
 
 ## P1
 

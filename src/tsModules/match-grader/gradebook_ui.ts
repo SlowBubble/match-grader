@@ -143,9 +143,9 @@ export class GradebookUi extends HTMLElement {
       this.moveRallyIdxAndVideo(-1);
     } else if (matchKey(evt, 'down')) {
       this.moveRallyIdxAndVideo(1);
-    } else if (matchKey(evt, `\\`)) {
+    } else if (matchKey(evt, `\\`) && this.config.enableMutation) {
       this.tabSelectedCell();
-    } else if (matchKey(evt, `shift+|`)) {
+    } else if (matchKey(evt, `shift+|`) && this.config.enableMutation) {
       this.tabSelectedCell(true);
     } else if (matchKey(evt, 'tab')) {
       this.gradebookMgr.moveColIdx(1, this.config.visibleColumns.length);
@@ -165,13 +165,13 @@ export class GradebookUi extends HTMLElement {
       } else {
         this.gradebookMgr.moveColIdx(-1, this.config.visibleColumns.length);
       }
-    } else if (matchKey(evt, 'backspace')) {
+    } else if (matchKey(evt, 'backspace') && this.config.enableMutation) {
       this.gradebookMgr.removeCurrRally();
-    } else if (matchKey(evt, 'cmd+z')) {
+    } else if (matchKey(evt, 'cmd+z') && this.config.enableMutation) {
       if (this.inputStartTime) {
         this.inputStartTime = null;
       }
-    } else if (matchKey(evt, 'enter')) {
+    } else if (matchKey(evt, 'enter') && this.config.enableMutation) {
       this.enterSelectedCell();
     } else {
       return;
@@ -385,8 +385,8 @@ export class GradebookUi extends HTMLElement {
       inputStartTime: this.inputStartTime,
       cursorAtTop,
       setupInputStartTimeBtn,
-      setupInputEndTimeBtn
-    }, this.config.visibleColumns));
+      setupInputEndTimeBtn,
+    }, this.config));
 
     const ralliedContexts = rallyContexts.slice(1);
     ralliedContexts.forEach((rallyCtx, rallyIdx) => {

@@ -3,6 +3,8 @@ export class GradebookUiConfig {
   constructor(
     public leftRightArrowMovesVideo: boolean = false,
     public upDownArrowJumpsToStartTime: boolean = true,
+    public startFromBeginning = false,
+    public enableMutation = true,
     public visibleColumns: ColumnName[] = [
       ColumnName.SERVER,
       ColumnName.SET_SCORE,

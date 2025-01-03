@@ -16,7 +16,11 @@ async function main() {
   const projectId = urlKeyVal.get('id') || '';
   
   const matchGraderUi = document.querySelector('gradebook-ui')! as GradebookUi;
-  matchGraderUi.config = new GradebookUiConfig(true, true, visibleColumnsForWatchMode);
+  matchGraderUi.config = new GradebookUiConfig;
+  matchGraderUi.config.leftRightArrowMovesVideo = true;
+  matchGraderUi.config.startFromBeginning = true;
+  matchGraderUi.config.enableMutation = false;
+  matchGraderUi.config.visibleColumns = visibleColumnsForWatchMode;
 
   document.body.addEventListener(
     'keydown', evt => matchGraderUi.handleKeydown(evt));

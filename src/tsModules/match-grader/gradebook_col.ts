@@ -1,5 +1,5 @@
 import { Cell, makeOpts } from "./match_sheet_ui";
-import { ColumnName } from "./gradebook_ui_config";
+import { ColumnName, GradebookUiConfig } from "./gradebook_ui_config";
 import { RallyContext } from "./models/rally_context";
 import { Time } from "./models/Time";
 import { formatSecondsToTimeString } from "./gradebook_util";
@@ -40,7 +40,7 @@ export interface FirstRowData {
   setupInputEndTimeBtn: () => void;
 }
 
-export function genFirstRow(data: FirstRowData, visibleColumns: ColumnName[]): Cell[] {
+export function genFirstRow(data: FirstRowData, config: GradebookUiConfig): Cell[] {
   const score = data.latestRallyCtx.scoreBeforeRally;
   const hasInputStartTime = data.inputStartTime !== null;
   const startTime = data.inputStartTime !== null ?
@@ -49,7 +49,8 @@ export function genFirstRow(data: FirstRowData, visibleColumns: ColumnName[]): C
   const endTime = data.inputStartTime !== null ?
     `<button id='input-end-time'>(Enter)</button>` : '';
 
-  return visibleColumns.map(col => {
+  const emptyCell = new Cell('');
+  return config.visibleColumns.map(col => {
     switch (col) {
       case ColumnName.SERVER:
         return new Cell('');
@@ -58,11 +59,17 @@ export function genFirstRow(data: FirstRowData, visibleColumns: ColumnName[]): C
       case ColumnName.GAME_SCORE:
         return new Cell(score.toPointsStr());
       case ColumnName.START_TIME:
+        if (!config.enableMutation) {
+          return emptyCell;
+        }
         return new Cell(startTime, makeOpts({
-          setupFunc: data.setupInputStartTimeBtn,
-          selected: data.cursorAtTop && !hasInputStartTime,
+        setupFunc: data.setupInputStartTimeBtn,
+        selected: data.cursorAtTop && !hasInputStartTime,
         }));
       case ColumnName.END_TIME:
+        if (!config.enableMutation) {
+          return emptyCell;
+        }
         return new Cell(endTime, makeOpts({
           setupFunc: data.setupInputEndTimeBtn,
           selected: data.cursorAtTop && hasInputStartTime,
@@ -71,7 +78,7 @@ export function genFirstRow(data: FirstRowData, visibleColumns: ColumnName[]): C
         return new Cell(data.latestPlot?.text, makeOpts({
           alignRight: !data.latestPlot?.isMyPlot}));
       default:
-        return new Cell('');
+        return emptyCell;
     }
   });
 }
