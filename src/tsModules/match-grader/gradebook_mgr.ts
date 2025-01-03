@@ -49,6 +49,17 @@ export class GradebookMgr {
     return this.getRelevantRallies()[cursor.rallyIdx];
   }
 
+  setRallyIdx(idx: number) {
+    const cursor = this.project.cursor;
+    if (idx < 0) {
+      cursor.rallyIdx = -1;
+    }
+    if (idx >= this.getRelevantRallies().length) {
+      cursor.rallyIdx = this.getRelevantRallies().length - 1;
+    }
+    cursor.rallyIdx = idx;
+  }
+
   moveRallyIdx(num: number, startColIdx: number) {
     const cursor = this.project.cursor;
     cursor.rallyIdx += num;

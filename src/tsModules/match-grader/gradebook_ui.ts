@@ -46,19 +46,23 @@ export class GradebookUi extends HTMLElement {
       if (cellLoc.rowIdx < 2) {
         return;
       }
-      this.gradebookMgr.project.cursor.rallyIdx = cellLoc.rowIdx - 2;
+      this.setRallyIdxAndVideo(cellLoc.rowIdx - 2);
       this.gradebookMgr.project.cursor.colIdx = cellLoc.colIdx;
       this.renderSheet();
-
-      // TODO seek video if the rally number is changed
     });
-    this.renderSheet();
+
 
     this.youtubePlayerUi = this.querySelector('youtube-player-ui')! as YoutubePlayerUi;
-    this.updateYoutubePlayer();
+    await this.updateYoutubePlayer();
 
     const addYoutubeBtn = this.querySelector('#add-youtube-btn')! as HTMLButtonElement;
     addYoutubeBtn.onclick = _ => this.obtainYoutubeUrl();
+
+    if (this.config.startFromBeginning) {
+      this.moveCursorToFirstRally();
+    }
+    this.renderSheet();
+
     return finalProjectId;
   }
 
@@ -131,6 +135,12 @@ export class GradebookUi extends HTMLElement {
     }
   }
 
+  private setRallyIdxAndVideo(idx: number) {
+    this.gradebookMgr.setRallyIdx(idx);
+    if (this.config.upDownArrowJumpsToStartTime) {
+      this.moveVideoToCurrentRally();
+    }
+  }
   private moveRallyIdxAndVideo(num: number) {
     this.gradebookMgr.moveRallyIdx(
       num, this.config.enableMutation ? this.getColIndex(ColumnName.START_TIME) : this.getColIndex(ColumnName.GAME_SCORE));
@@ -285,7 +295,7 @@ export class GradebookUi extends HTMLElement {
     }
   }
 
-  private updateYoutubePlayer() {
+  private async updateYoutubePlayer() {
     const urls = this.gradebookMgr.project.matchData.urls;
     if (urls.length < 1) {
       return;
@@ -294,7 +304,7 @@ export class GradebookUi extends HTMLElement {
     if (!success) {
       return;
     }
-    this.youtubePlayerUi.initYoutubePlayer(id, this.currentUrlIdx > 0);  // autoplay=true for subsequent videos
+    await this.youtubePlayerUi.initYoutubePlayer(id, this.currentUrlIdx > 0);  // autoplay=true for subsequent videos
     this.youtubePlayerUi.onEnd(() => {
       if (this.currentUrlIdx < urls.length - 1) {
         this.currentUrlIdx++;
@@ -342,6 +352,10 @@ export class GradebookUi extends HTMLElement {
 
     this.inputStartTime = null;
     this.renderSheet();
+  }
+
+  private moveCursorToFirstRally() {
+    this.setRallyIdxAndVideo(this.gradebookMgr.project.matchData.rallies.length - 1);
   }
 
   private genSheet(): Cell[][] {

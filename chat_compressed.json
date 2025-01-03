@@ -1,9 +1,3 @@
 [
-  "Refactor the creation of headerRow by iterating thru visibleColumns and calling a new function in gradebook_col called genHeaderCol(colName: ColumnName): Cell",
-  "Do a similar refactoring for firstRow by passing whatever argument is necessary to compute the data",
-  "Fix genFirstRow and do a similar refactoring for firstRow by using genFirstRow.",
-  "fix imports error (genFirstRow and formatSecondsToTimeString)",
-  "Do a similar refactoring for row by passing whatever argument is necessary to compute the data",
-  "Revert the part where you have isPointFinishing",
-  "Remove unused imports"
+  "Implement startFromBeginning"
 ]

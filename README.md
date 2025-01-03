@@ -4,13 +4,12 @@
 ## Doing
 
 - Watch Mode: 
-  - startFromBeginning = true
   - moveCursorUpFromVideoTime = true
   - Implement spoilerColumns
 
 ## Done
 
-- hideFutureRallies = true
+  - startFromBeginning = true
 
 ## P1
 
