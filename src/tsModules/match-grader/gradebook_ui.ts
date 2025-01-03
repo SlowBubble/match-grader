@@ -355,6 +355,7 @@ export class GradebookUi extends HTMLElement {
   }
 
   private moveCursorToFirstRally() {
+    this.gradebookMgr.project.cursor.colIdx = this.getColIndex(ColumnName.GAME_SCORE);
     this.setRallyIdxAndVideo(this.gradebookMgr.project.matchData.rallies.length - 1);
   }
 

@@ -23,16 +23,16 @@ export class GradebookUiConfig {
 }
 
 export enum ColumnName {
-  SERVER,
-  SET_SCORE,
-  GAME_SCORE,
-  START_TIME,
-  END_TIME,
-  RESULT,
-  WINNER_LAST_SHOT,
-  LOSER_PREVIOUS_SHOT,
-  PLOT,
-  WINNER_RISK
+  SERVER = "SERVER",
+  SET_SCORE = "SET_SCORE",
+  GAME_SCORE = "GAME_SCORE",
+  START_TIME = "START_TIME",
+  END_TIME = "END_TIME",
+  RESULT = "RESULT",
+  WINNER_LAST_SHOT = "WINNER_LAST_SHOT",
+  LOSER_PREVIOUS_SHOT = "LOSER_PREVIOUS_SHOT",
+  PLOT = "PLOT",
+  WINNER_RISK = "WINNER_RISK"
 };
 
 export const visibleColumnsForWatchMode = [

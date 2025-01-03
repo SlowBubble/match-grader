@@ -5,11 +5,10 @@
 
 - Watch Mode: 
   - moveCursorUpFromVideoTime = true
-  - Implement spoilerColumns
 
 ## Done
 
-  - startFromBeginning = true
+  - Implement spoilerColumns
 
 ## P1
 

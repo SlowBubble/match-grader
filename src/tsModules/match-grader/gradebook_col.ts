@@ -112,8 +112,12 @@ export function genRallyRow(data: RallyRowData, config: GradebookUiConfig): Cell
   const server = rally.isMyServe ? data.myName :
     `${"".padStart(data.myName.length, "_")}${data.oppoName}`;
 
+  const isSpoilerRow = data.rallyIdx <= data.cursor.rallyIdx;
   return config.visibleColumns.map((col, colIdx) => {
     const selected = (data.rallyIdx === data.cursor.rallyIdx) && (colIdx === data.cursor.colIdx);
+    if (isSpoilerRow && config.spoilerColumns.includes(col)) {
+      return new Cell('???', makeOpts({ selected: selected }));
+    } 
     switch (col) {
       case ColumnName.SERVER:
         return new Cell(
