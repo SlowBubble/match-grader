@@ -1,5 +1,1 @@
-[
-  "Implement upDownArrowJumpsToStartTime",
-  "Implement upDownArrowJumpsToStartTime",
-  "This is wrong;\nkeep the moveRallyIdx and then get the current rally after the moveRallyIdx and moveTo the time of the current rally"
-]
+[]

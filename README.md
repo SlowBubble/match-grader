@@ -3,15 +3,9 @@
 
 ## Doing
 
-- Watch Mode: Implement GradebookUiConfig for Watch and Edit
-  - Remove Start, Result, Winner's, Loser's.
-  - Reveal only the start time for the current point
-    - reveal everything for the previous points
-    - Can use up arrow to reveal more
-
-    public showOnlyStartTimeForCurrentRally: boolean = false,
-    public visibleColumns: ColumnName[]
-
+- Watch Mode: 
+  - Implement visibleColumns
+  - Implement spoilerColumns
 
 ## Done
 
@@ -26,6 +20,13 @@ public upDownArrowJumpsToStartTime: boolean = false,
   - Second serve win %
 
 ## P2
+
+- Think of other features for watch mode
+  - When the video player reach a certain time, the cursor should automatically move as well.
+    - Polling every 2 seconds?
+  - Option: Skip the pauses automatically
+  - Option: Skip the single faults
+  - Option: Skip things shorter than 5 seconds.
 
 - Remove Score deps from Rally
   - RallyContext depends on Score, depends on Rally.

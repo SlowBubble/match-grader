@@ -1,7 +1,7 @@
 
 
 import { GradebookUi } from "./tsModules/match-grader/gradebook_ui";
-import { GradebookUiConfig } from "./tsModules/match-grader/gradebook_ui_config";
+import { GradebookUiConfig, visibleColumnsForWatchMode } from "./tsModules/match-grader/gradebook_ui_config";
 import { getUrlParamsMap } from "./tsModules/url-state/url";
 
 GradebookUi;
@@ -16,7 +16,7 @@ async function main() {
   const projectId = urlKeyVal.get('id') || '';
   
   const matchGraderUi = document.querySelector('gradebook-ui')! as GradebookUi;
-  matchGraderUi.config = new GradebookUiConfig(true, true, true);
+  matchGraderUi.config = new GradebookUiConfig(true, true, visibleColumnsForWatchMode);
 
   document.body.addEventListener(
     'keydown', evt => matchGraderUi.handleKeydown(evt));
