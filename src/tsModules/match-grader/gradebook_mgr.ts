@@ -1,6 +1,5 @@
 import { GradebookProject } from "./models/gradebook_models";
 import { FirestoreDao } from "./firestore_dao";
-import { START_TIME_COL, TOTAL_COLS } from "./constants";
 import { auth } from "../firebase/config";
 
 const dao = new FirestoreDao();
@@ -59,12 +58,12 @@ export class GradebookMgr {
     return this.getRelevantRallies()[cursor.rallyIdx];
   }
 
-  moveRallyIdx(num = 1) {
+  moveRallyIdx(num: number, startColIdx: number) {
     const cursor = this.project.cursor;
     cursor.rallyIdx += num;
     if (cursor.rallyIdx < 0) {
       cursor.rallyIdx = -1;
-      cursor.colIdx = START_TIME_COL;
+      cursor.colIdx = startColIdx;
       return;
     }
     const rallies = this.getRelevantRallies();
@@ -72,24 +71,11 @@ export class GradebookMgr {
       cursor.rallyIdx = rallies.length - 1;
     }
   }
-  moveColIdxOrUp(num = 1) {
+  moveColIdx(num: number, totalCols: number) {
     const cursor = this.project.cursor;
     cursor.colIdx += num;
-    if (cursor.colIdx >= TOTAL_COLS) {
-      cursor.colIdx = 0;
-      this.moveRallyIdx(-1);
-      return;
-    }
-    if (cursor.colIdx < 0) {
-      cursor.colIdx = TOTAL_COLS - 1;
-      this.moveRallyIdx(1);
-    }
-  }
-  moveColIdx(num = 1) {
-    const cursor = this.project.cursor;
-    cursor.colIdx += num;
-    if (cursor.colIdx >= TOTAL_COLS) {
-      cursor.colIdx = TOTAL_COLS - 1;
+    if (cursor.colIdx >= totalCols) {
+      cursor.colIdx = totalCols - 1;
       return;
     }
     if (cursor.colIdx < 0) {

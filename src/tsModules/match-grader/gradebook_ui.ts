@@ -2,12 +2,12 @@ import { matchKey } from "../key-match/key_match";
 import { YoutubePlayerUi } from "../youtube-player/youtube_player_ui";
 import { Cell, CellLoc, MatchSheetUi } from "./match_sheet_ui";
 import { GradebookMgr } from "./gradebook_mgr";
-import { END_TIME_COL, LOSER_PREVIOUS_SHOT_COL, RATING_SCALE, RESULT_COL, SERVER_COL, START_TIME_COL, WINNER_LAST_SHOT_COL } from "./constants";
+import { RATING_SCALE } from "./constants";
 import { EphemeralBanner } from "../ephemeral-banner";
 import { RallyResult, rallyResultToIndex, rallyResultVals } from "./models/rally";
 import { Time } from "./models/Time";
 import { mod, extractYoutubeId } from "./gradebook_util";
-import { GradebookUiConfig } from "./gradebook_ui_config";
+import { GradebookUiConfig, ColumnName } from "./gradebook_ui_config";
 import { htmlTemplate } from "./gradebook_ui_template";
 import { genFirstRow, genHeaderCol, genRallyRow } from "./gradebook_col";
 
@@ -132,7 +132,7 @@ export class GradebookUi extends HTMLElement {
   }
 
   private moveRallyIdxAndVideo(num: number) {
-    this.gradebookMgr.moveRallyIdx(num);
+    this.gradebookMgr.moveRallyIdx(num, this.getColIndex(ColumnName.START_TIME));
     if (this.config.upDownArrowJumpsToStartTime) {
       this.moveVideoToCurrentRally();
     }
@@ -148,22 +148,22 @@ export class GradebookUi extends HTMLElement {
     } else if (matchKey(evt, `shift+|`)) {
       this.tabSelectedCell(true);
     } else if (matchKey(evt, 'tab')) {
-      this.gradebookMgr.moveColIdx(1);
+      this.gradebookMgr.moveColIdx(1, this.config.visibleColumns.length);
     } else if (matchKey(evt, 'right')) {
       if (this.config.leftRightArrowMovesVideo) {
         this.getVideoPlayerUi().move(5);
         return;
       } else {
-        this.gradebookMgr.moveColIdx(1);
+        this.gradebookMgr.moveColIdx(1, this.config.visibleColumns.length);
       }
     } else if (matchKey(evt, 'shift+tab')) {
-      this.gradebookMgr.moveColIdx(-1);
+      this.gradebookMgr.moveColIdx(-1, this.config.visibleColumns.length);
     } else if (matchKey(evt, 'left')) {
       if (this.config.leftRightArrowMovesVideo) {
         this.getVideoPlayerUi().move(-5);
         return;
       } else {
-        this.gradebookMgr.moveColIdx(-1);
+        this.gradebookMgr.moveColIdx(-1, this.config.visibleColumns.length);
       }
     } else if (matchKey(evt, 'backspace')) {
       this.gradebookMgr.removeCurrRally();
@@ -180,6 +180,14 @@ export class GradebookUi extends HTMLElement {
     evt.preventDefault();
   }
 
+  private getColIndex(colName: ColumnName): number {
+    const poss = this.config.visibleColumns.indexOf(colName);
+    if (poss !== -1) {
+      return poss;
+    }
+    return 0;
+  }
+
   private enterSelectedCell() {
     const rally = this.gradebookMgr.getCurrentRally();
     if (!rally) {
@@ -191,28 +199,30 @@ export class GradebookUi extends HTMLElement {
       return;
     }
     const cursor = this.gradebookMgr.project.cursor;
-    if (cursor.colIdx === START_TIME_COL) {
+    const col = this.config.visibleColumns[cursor.colIdx];
+
+    if (col === ColumnName.START_TIME) {
       this.moveRallyIdxAndVideo(-1);
-    } else if (cursor.colIdx === END_TIME_COL) {
+    } else if (col === ColumnName.END_TIME) {
       if (this.config.upDownArrowJumpsToStartTime) {
         rally.endTime = this.getNowTime();
         // move to start time col of next rally
-        this.gradebookMgr.moveColIdx(-1);
+        this.gradebookMgr.moveColIdx(-1, this.config.visibleColumns.length);
         this.moveRallyIdxAndVideo(-1);
       } else {
         this.moveRallyIdxAndVideo(-1);
       }
-    } else if (cursor.colIdx === RESULT_COL) {
+    } else if (col === ColumnName.RESULT) {
       if (rally.result === RallyResult.PtReturner || rally.result === RallyResult.PtServer) {
-        this.gradebookMgr.moveColIdx(1);
+        this.gradebookMgr.moveColIdx(1, this.config.visibleColumns.length);
       } else {
         this.moveRallyIdxAndVideo(-1);
       }
-    } else if (cursor.colIdx === WINNER_LAST_SHOT_COL) {
-      this.gradebookMgr.moveColIdx(1);
-    } else if (cursor.colIdx === LOSER_PREVIOUS_SHOT_COL) {
+    } else if (col === ColumnName.WINNER_LAST_SHOT) {
+      this.gradebookMgr.moveColIdx(1, this.config.visibleColumns.length);
+    } else if (col === ColumnName.LOSER_PREVIOUS_SHOT) {
       this.moveRallyIdxAndVideo(-1);
-    } else if (cursor.colIdx === SERVER_COL) {
+    } else if (col === ColumnName.SERVER) {
       const name = prompt(`Enter server's name`);
       if (name) {
         if (rally.isMyServe) {
@@ -230,25 +240,27 @@ export class GradebookUi extends HTMLElement {
       return;
     }
     const cursor = this.gradebookMgr.project.cursor;
-    if (cursor.colIdx === RESULT_COL) {
+    const col = this.config.visibleColumns[cursor.colIdx];
+
+    if (col === ColumnName.RESULT) {
       const idx = rallyResultToIndex.get(rally.result);
       const next = opposite ? idx - 1 : idx + 1 + rallyResultToIndex.size;
       const nextIdx = next % rallyResultToIndex.size;
       rally.result = rallyResultVals[nextIdx];
-    } else if (cursor.colIdx === WINNER_LAST_SHOT_COL) {
+    } else if (col === ColumnName.WINNER_LAST_SHOT) {
       const ratingChange = opposite ? 1 : -1;
       rally.stat.winnerLastShotQuality = mod(
         rally.stat.winnerLastShotQuality + ratingChange, RATING_SCALE + 1);
-    } else if (cursor.colIdx === LOSER_PREVIOUS_SHOT_COL) {
+    } else if (col === ColumnName.LOSER_PREVIOUS_SHOT) {
       const ratingChange = opposite ? -1 : 1;
       rally.stat.loserPreviousShotQuality = mod(
         rally.stat.loserPreviousShotQuality + ratingChange, RATING_SCALE + 1);
-    } else if (cursor.colIdx === SERVER_COL) {
+    } else if (col === ColumnName.SERVER) {
       rally.isMyServe = !rally.isMyServe;
-    } else if (cursor.colIdx === START_TIME_COL) {
+    } else if (col === ColumnName.START_TIME) {
       rally.startTime.ms += opposite ? -500 : 500;
       this.moveTo(rally.startTime);
-    } else if (cursor.colIdx === END_TIME_COL) {
+    } else if (col === ColumnName.END_TIME) {
       rally.endTime.ms += opposite ? -500 : 500;
       this.moveTo(rally.endTime);
     }
@@ -326,7 +338,7 @@ export class GradebookUi extends HTMLElement {
     const guessRes = nowTime.ms - this.inputStartTime.ms < 3500 ? RallyResult.Fault : RallyResult.PtServer;
     this.gradebookMgr.project.matchData.addRally(this.inputStartTime, nowTime, guessRes);
     this.gradebookMgr.project.cursor.rallyIdx = this.gradebookMgr.getRelevantRallies().length - 1;
-    this.gradebookMgr.project.cursor.colIdx = RESULT_COL;
+    this.gradebookMgr.project.cursor.colIdx = this.getColIndex(ColumnName.RESULT);
     this.gradebookMgr.project.cursor.rallyIdx = 0;
 
     this.inputStartTime = null;
