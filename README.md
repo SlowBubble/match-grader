@@ -5,6 +5,9 @@
 
 - Watch Mode: 
   - Implement visibleColumns
+    - Have a function that switch case into computing the cell for each ColumnName, so we can just iterate thru visibleColumns (- spoilerColumns beyond current rally).
+    - Also have 1 for computing the headers
+    - Also have 1 for computing the non-promoted row.
   - Implement spoilerColumns
 
 ## Done
@@ -14,10 +17,17 @@ public upDownArrowJumpsToStartTime: boolean = false,
 ## P1
 
 - Advanced stats like set pt number, double fault number.
-  - First serve %
-  - First serve win %
-  - Second serve %
-  - Second serve win %
+- Think about the UX for adding these stats (start with an overlay when you press a keyboard shortcut):
+  - % serve pts won
+    - slice by first vs second serve
+  - Serve %
+    - slice by first vs second serve
+  - % return pts won
+    - slice by first vs second serve
+  - % winning pts that are green
+    - slice by first vs second and serve vs return
+  - % free pts you gave to the opponent
+    - slice by first vs second and serve vs return
 
 ## P2
 
@@ -28,6 +38,8 @@ public upDownArrowJumpsToStartTime: boolean = false,
   - Option: Skip the single faults
   - Option: Skip things shorter than 5 seconds.
 
+- Add a column for 1st or 2nd serve
+  - This will allow slicing
 - Remove Score deps from Rally
   - RallyContext depends on Score, depends on Rally.
 
