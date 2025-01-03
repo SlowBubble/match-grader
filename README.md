@@ -8,17 +8,14 @@
   - Reveal only the start time for the current point
     - reveal everything for the previous points
     - Can use up arrow to reveal more
-  - up, down for the entire row
-    - automatically jump to the start time when you press up or down
 
     public showOnlyStartTimeForCurrentRally: boolean = false,
-    public leftRightArrowMovesVideo: boolean = false,
-    public upDownArrowJumpsToStartTime: boolean = false,
     public visibleColumns: ColumnName[]
+
 
 ## Done
 
-public leftRightArrowMovesVideo: boolean = false,
+public upDownArrowJumpsToStartTime: boolean = false,
 
 ## P1
 

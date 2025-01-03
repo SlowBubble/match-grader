@@ -123,8 +123,20 @@ export class GradebookUi extends HTMLElement {
   handleKeydownWithSheetChanges(evt: KeyboardEvent) {
     if (matchKey(evt, 'up')) {
       this.gradebookMgr.moveRallyIdx(-1);
+      if (this.config.upDownArrowJumpsToStartTime) {
+        const rally = this.gradebookMgr.getCurrentRally();
+        if (rally) {
+          this.moveTo(rally.startTime);
+        }
+      }
     } else if (matchKey(evt, 'down')) {
       this.gradebookMgr.moveRallyIdx(1);
+      if (this.config.upDownArrowJumpsToStartTime) {
+        const rally = this.gradebookMgr.getCurrentRally();
+        if (rally) {
+          this.moveTo(rally.startTime);
+        }
+      }
     } else if (matchKey(evt, `\\`)) {
       this.tabSelectedCell();
     } else if (matchKey(evt, `shift+|`)) {
