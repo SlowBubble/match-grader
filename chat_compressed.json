@@ -1,1 +1,7 @@
-[]
+[
+  "Impl config.moveCursorUpBasedOnVideoTime by polling every second to see if the video time is inside a certain rally's startTime and endTime, and if so move the cursor to that rally index",
+  "@workspace Impl config.moveCursorUpBasedOnVideoTime in loadOrCreateProjectInUi by \npolling every second to see if the video time is inside a certain rally's startTime and endTime, and if so move the cursor to that rally index",
+  "Store the interval id so that we clear it before calling setInterval",
+  "optimize moveToRallyContainingTime by doing the for loop starting from the rally idx of the cursor",
+  "never mind, go back to the for loop approach"
+]

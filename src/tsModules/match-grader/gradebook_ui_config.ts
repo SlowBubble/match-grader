@@ -1,8 +1,11 @@
 
 export class GradebookUiConfig {
   constructor(
-    public leftRightArrowMovesVideo: boolean = false,
+    // TODO consider making these non-optional defaults.
     public upDownArrowJumpsToStartTime: boolean = true,
+    public moveCursorUpBasedOnVideoTime: boolean = true,
+
+    public leftRightArrowMovesVideo: boolean = false,
     public startFromBeginning = false,
     public hideFutureRallies = false,
     public enableMutation = true,
@@ -40,11 +43,13 @@ export const visibleColumnsForWatchMode = [
   ColumnName.SET_SCORE,
   ColumnName.GAME_SCORE,
   ColumnName.END_TIME,
+  ColumnName.RESULT,
   ColumnName.PLOT,
   ColumnName.WINNER_RISK,
 ];
 
 export const spoilerColumnsForWatchMode = [
   ColumnName.END_TIME,
+  ColumnName.RESULT,
   ColumnName.WINNER_RISK,
 ];

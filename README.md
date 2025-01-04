@@ -3,19 +3,17 @@
 
 ## Doing
 
-- Watch Mode: 
-  - moveCursorUpFromVideoTime = true
-  - Enter key should be the same as going up.
-
-## Done
-
-Fixed 2 bugs.
-
-## P1
-
 - Design sorting
 
 - Advanced stats like set pt number, double fault number.
+
+## Done
+- Enter key should be the same as going up.
+- moveCursorUpFromVideoTime = true
+
+## P1
+
+
 - Think about the UX for adding these stats (start with an overlay when you press a keyboard shortcut):
   - % serve pts won
     - slice by first vs second serve
@@ -40,8 +38,6 @@ Fixed 2 bugs.
 ## P2
 
 - Think of other features for watch mode
-  - When the video player reach a certain time, the cursor should automatically move as well.
-    - Polling every 2 seconds?
   - Option: Skip the pauses automatically
   - Option: Skip the single faults
   - Option: Skip things shorter than 5 seconds.

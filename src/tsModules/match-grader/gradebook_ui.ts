@@ -22,6 +22,7 @@ export class GradebookUi extends HTMLElement {
 
   private matchSheetUi: MatchSheetUi = new MatchSheetUi;
   private banner: EphemeralBanner = new EphemeralBanner;
+  private videoTimePollingInterval: number | null = null;
 
   connectedCallback() {
     this.innerHTML = `Loading project data.`;
@@ -51,9 +52,17 @@ export class GradebookUi extends HTMLElement {
       this.renderSheet();
     });
 
-
     this.youtubePlayerUi = this.querySelector('youtube-player-ui')! as YoutubePlayerUi;
     await this.updateYoutubePlayer();
+
+    if (this.config.moveCursorUpBasedOnVideoTime) {
+      if (this.videoTimePollingInterval) {
+        clearInterval(this.videoTimePollingInterval);
+      }
+      this.videoTimePollingInterval = window.setInterval(() => {
+        this.moveToRallyContainingTime();
+      }, 1000);
+    }
 
     const addYoutubeBtn = this.querySelector('#add-youtube-btn')! as HTMLButtonElement;
     addYoutubeBtn.onclick = _ => this.obtainYoutubeUrl();
@@ -127,10 +136,11 @@ export class GradebookUi extends HTMLElement {
     window.location.href = `${location.origin}/edit.html#id=${newId}`;
   }
 
-  private moveVideoToCurrentRally() {
+  private moveVideoToCurrentRally(paddingMs = -1000) {
     const rally = this.gradebookMgr.getCurrentRally();
     if (rally) {
-      this.moveTo(rally.startTime);
+      const startTime = new Time(rally.startTime.ms + paddingMs, rally.startTime.videoIndex);
+      this.moveTo(startTime);
       // TODO see if we want moveTo(endTime) if the cursor is on the end time column.
     }
   }
@@ -180,8 +190,12 @@ export class GradebookUi extends HTMLElement {
       if (this.inputStartTime) {
         this.inputStartTime = null;
       }
-    } else if (matchKey(evt, 'enter') && this.config.enableMutation) {
-      this.enterSelectedCell();
+    } else if (matchKey(evt, 'enter')) {
+      if (this.config.enableMutation) {
+        this.enterSelectedCell();
+      } else {
+        this.moveRallyIdxAndVideo(-1);
+      }
     } else {
       return;
     }
@@ -439,6 +453,28 @@ export class GradebookUi extends HTMLElement {
       }, this.config));
     });
     return rows;
+  }
+
+  private moveToRallyContainingTime(earlyMoveMs = 1000) {
+    const currentTime = this.getNowTime();
+    const rallies = this.gradebookMgr.getRelevantRallies();
+    const cursorRallyIdx = this.gradebookMgr.project.cursor.rallyIdx;
+    
+    for (let idx = 0; idx < rallies.length; idx++) {
+      // Start from nearby and go forward to speed up the search.
+      const shiftedIdx = mod(cursorRallyIdx + idx - 3, rallies.length);
+      const rally = rallies[shiftedIdx];
+      if (currentTime.videoIndex === rally.startTime.videoIndex &&
+          rally.startTime.ms - earlyMoveMs <= currentTime.ms && 
+          currentTime.ms <= rally.endTime.ms - earlyMoveMs) {
+        // Only update if cursor isn't already on this rally
+        if (cursorRallyIdx !== shiftedIdx) {
+          this.gradebookMgr.setRallyIdx(shiftedIdx);
+          this.renderSheet();
+        }
+        return;
+      }
+    }
   }
 }
 

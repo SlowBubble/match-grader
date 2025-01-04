@@ -137,7 +137,7 @@ export function genRallyRow(data: RallyRowData, config: GradebookUiConfig): Cell
           makeOpts({ alignRight: true, selected }));
       case ColumnName.RESULT:
         return new Cell(
-          config.enableMutation && data.rallyIdx > 0 ? data.rallyCtx.getResultSymbolStr() : 
+          !config.enableMutation || data.rallyIdx > 0 ? data.rallyCtx.getResultSymbolStr() : 
             data.rallyCtx.getResultStr(data.myName, data.oppoName),
           makeOpts({ alignCenter: true, selected }));
       case ColumnName.WINNER_LAST_SHOT:
