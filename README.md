@@ -3,9 +3,14 @@
 
 ## Doing
 
-- Design sorting
-
 - Advanced stats like set pt number, double fault number.
+
+### Sorting
+
+- Certain display that depends on prevRallyCtx will break
+  - Have an option to display always (not conditioned on prevRallyCtx)
+- Do sorting --> Do rendering independent of prevRallyCtx and rallyIdx
+  - Need to consider how cursor works (cursor should be based on the sorted list, not the list before sorting)
 
 ## Done
 - Enter key should be the same as going up.
@@ -28,12 +33,7 @@
 
 - Consider making upDownArrowJumpsToStartTime = true always (remove impl that uses it).
 
-### Sorting
 
-- Certain display that depends on prevRallyCtx will break
-  - Have an option to display always (not conditioned on prevRallyCtx)
-- Do sorting --> Do rendering independent of prevRallyCtx and rallyIdx
-  - Need to consider how cursor works (cursor should be based on the sorted list, not the list before sorting)
 
 ## P2
 

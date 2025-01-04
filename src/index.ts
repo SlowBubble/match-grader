@@ -14,13 +14,20 @@ function main() {
 
   setUpAuth();
   populateProjects();
+  
+  // Add keyboard shortcut for create
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'c') {
+      window.location.href = '/edit.html';
+    }
+  });
 }
 
 function setUpAuth() {
+    // TODO add this back when production ready: <a href='/edit.html'>Create</a>
   document.querySelector<HTMLDivElement>('#auth')!.innerHTML = `
     <button id="signInBtn">Sign In with Google</button>
     <button id="signOutBtn">Sign Out</button>
-    <a href='/edit.html'>Create</a>
   `;
   const signInBtn = document.getElementById('signInBtn') as HTMLButtonElement;
   const signOutBtn = document.getElementById('signOutBtn') as HTMLButtonElement;
@@ -77,12 +84,13 @@ async function populateProjects() {
     return {
       id: project.projectInfo.id,
       text: `${project.matchData.myName} vs ${project.matchData.oppoName}`,
-      link: `/edit.html#id=${project.projectInfo.id}`,
-      createdAt: new Date(project.projectInfo.createdAt),
+      matchUpLink: `/watch.html#id=${project.projectInfo.id}`,
+      editLink: `/edit.html#id=${project.projectInfo.id}`,
       lastEditedAt: new Date(project.projectInfo.lastEditedAt),
-      owner: project.projectInfo.owner
+      owner: project.projectInfo.owner,
+      rallyCount: project.matchData.rallies.length
     };
-  });
+  }).sort((a, b) => b.rallyCount - a.rallyCount);  // Sort by rally count descending
 
   const currentUser = auth.currentUser;
   document.querySelector<HTMLDivElement>('#projects')!.innerHTML += `
@@ -104,7 +112,8 @@ async function populateProjects() {
 }
 
 function createTableWithLinksAndDates(items: {
-    id: string, text: string, link: string, createdAt: Date, lastEditedAt: Date, owner: string }[], 
+    id: string, text: string, matchUpLink: string, editLink: string, 
+    lastEditedAt: Date, owner: string, rallyCount: number }[], 
     currentUserId?: string): string {
   if (items.length === 0) {
     return "";
@@ -136,20 +145,20 @@ function createTableWithLinksAndDates(items: {
     <thead>
       <tr>
         <th>Match-up</th>
-        <th>Created on</th>
-        <th>Edited on</th>
-        <th>Actions</th>
+        <th>Rallies</th>
+        ${currentUserId ? '<th>Edited on</th>' : ''}
+        ${currentUserId ? '<th>Actions</th>' : ''}
       </tr>
     </thead>
     <tbody>
-      ${items.map(({ id, text, link, createdAt, lastEditedAt, owner }) => `
+      ${items.map(({ id, text, matchUpLink, editLink, lastEditedAt, owner, rallyCount }) => `
         <tr>
-          <td><a href="${link}">${text}</a></td>
-          <td><a href="${link}">${formatDate(createdAt)}</a></td>
-          <td><a href="${link}">${formatDate(lastEditedAt)}</a></td>
-          <td>${owner === currentUserId ? 
-            `<button data-project-id="${id}" class="delete-project">X</button>` : 
-            ''}</td>
+          <td><a href="${matchUpLink}">${text}</a></td>
+          <td>${rallyCount}</td>
+          ${currentUserId && owner === currentUserId ? `
+            <td><a href="${editLink}">${formatDate(lastEditedAt)}</a></td>
+            <td><button data-project-id="${id}" class="delete-project">X</button></td>
+          ` : ''}
         </tr>
       `).join('')}
     </tbody>
