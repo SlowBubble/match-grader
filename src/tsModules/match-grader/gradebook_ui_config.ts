@@ -42,9 +42,9 @@ export const visibleColumnsForWatchMode = [
   ColumnName.SERVER,
   ColumnName.SET_SCORE,
   ColumnName.GAME_SCORE,
+  ColumnName.PLOT,
   ColumnName.END_TIME,
   ColumnName.RESULT,
-  ColumnName.PLOT,
   ColumnName.WINNER_RISK,
 ];
 

@@ -116,7 +116,7 @@ export function genRallyRow(data: RallyRowData, config: GradebookUiConfig): Cell
   return config.visibleColumns.map((col, colIdx) => {
     const selected = (data.rallyIdx === data.cursor.rallyIdx) && (colIdx === data.cursor.colIdx);
     if (isSpoilerRow && config.spoilerColumns.includes(col)) {
-      return new Cell('???', makeOpts({ selected: selected }));
+      return new Cell('?', makeOpts({ selected: selected }));
     } 
     switch (col) {
       case ColumnName.SERVER:
@@ -134,7 +134,7 @@ export function genRallyRow(data: RallyRowData, config: GradebookUiConfig): Cell
           makeOpts({ selected }));
       case ColumnName.END_TIME:
         return new Cell(rally.getDurationStr(),
-          makeOpts({ alignRight: true, selected }));
+          makeOpts({ selected }));
       case ColumnName.RESULT:
         return new Cell(
           !config.enableMutation || data.rallyIdx > 0 ? data.rallyCtx.getResultSymbolStr() : 

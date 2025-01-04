@@ -51,7 +51,7 @@ export class YoutubePlayerUi extends HTMLElement {
     this.querySelector('#iframe-container')!.innerHTML = `
       <iframe id="${iframeId}"
         width="0" height="0"
-        src="https://www.youtube.com/embed/${videoId}?rel=0&enablejsapi=1"
+        src="https://www.youtube.com/embed/${videoId}?rel=0&controls=0&enablejsapi=1"
         allow="autoplay"></iframe>
       <iframe id='fake-iframe' width='${maxPlayerWidth}' height='${maxPlayerHeight}' style='background:black;'></iframe>
     `;

@@ -41,16 +41,43 @@ export const htmlTemplate = `
       .menu-content button:hover {
         background-color: #f1f1f1;
       }
+      .shortcut-item {
+        padding: 12px 16px;
+        color: #666;
+        font-size: 0.9em;
+        border-top: 1px solid #eee;
+      }
+      .shortcut-key {
+        font-weight: bold;
+        color: #333;
+      }
       </style>
       <ephemeral-banner></ephemeral-banner>
       <div id='youtube-container'>
         <youtube-player-ui></youtube-player-ui>
         <div class="menu-container">
-          <button id='menu-button'>☰ Menu</button>
           <div class="menu-content">
             <button id='add-youtube-btn'>Add youtube video</button>
+          </div>
+          <div class="shortcut-item">
+          Keyboard shortcuts
+          </div>
+          <div class="shortcut-item">
+            <span class="shortcut-key">space</span>: play/pause
+          </div>
+          <div class="shortcut-item">
+            <span class="shortcut-key">↑, enter</span>: next point
+          </div>
+          <div class="shortcut-item">
+            <span class="shortcut-key">f</span>: toggle fullscreen
+          </div>
+          <div class="shortcut-item">
+            <span class="shortcut-key">z, x</span>: slow-mo
           </div>
         </div>
       </div>
       <div><match-sheet-ui></match-sheet-ui></div>
     `;
+
+// TODO add this back
+// <button id='menu-button'>☰ Menu</button>

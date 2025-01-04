@@ -3,6 +3,8 @@
 
 ## Doing
 
+- Reveal spoiler after endTime is reached
+
 - Advanced stats like set pt number, double fault number.
 
 ### Sorting
@@ -13,11 +15,8 @@
   - Need to consider how cursor works (cursor should be based on the sorted list, not the list before sorting)
 
 ## Done
-- Enter key should be the same as going up.
-- moveCursorUpFromVideoTime = true
 
 ## P1
-
 
 - Think about the UX for adding these stats (start with an overlay when you press a keyboard shortcut):
   - % serve pts won
