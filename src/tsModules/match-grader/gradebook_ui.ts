@@ -65,13 +65,14 @@ export class GradebookUi extends HTMLElement {
 
     if (this.config.moveCursorUpBasedOnVideoTime) {
       window.setInterval(() => {
-        this.moveToRallyContainingTime();
+        if (this.youtubePlayerUi.youtubePlayer.getPlayerState() === YT.PlayerState.PLAYING) {
+          this.moveToRallyContainingTime();
+        }
       }, 1000);
     }
 
     if (this.config.spoilerColumns.length > 0) {
       window.setInterval(() => {
-        console.log(this.videoTimeIsBeyondCurrentRally());
         if (this.videoTimeIsBeyondCurrentRally()) {
           // TODO think of how to make this more efficient
           // Design a publisher to notify when the video time passed certain key points.
@@ -495,6 +496,15 @@ export class GradebookUi extends HTMLElement {
         return;
       }
     }
+  }
+}
+
+export declare namespace YT {
+  enum PlayerState {
+    ENDED = 0,
+    PLAYING = 1,
+    PAUSED = 2,
+    BUFFERING = 3
   }
 }
 

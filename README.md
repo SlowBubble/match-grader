@@ -3,7 +3,6 @@
 
 ## Doing
 
-
 - Advanced stats like set pt number, double fault number.
 
 ### Sorting
@@ -37,10 +36,13 @@
 
 ## P2
 
+- Design a better pub-sub for when video time passes a key point.
 - Think of other features for watch mode
   - Option: Skip the pauses automatically
   - Option: Skip the single faults
   - Option: Skip things shorter than 5 seconds.
+
+- Add UTR or USTA rating
 
 - Add a column for 1st or 2nd serve
   - This will allow slicing

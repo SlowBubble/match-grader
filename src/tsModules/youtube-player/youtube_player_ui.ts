@@ -1,4 +1,4 @@
-declare namespace YT {
+export declare namespace YT {
   enum PlayerState {
     ENDED = 0,
     PLAYING = 1,
