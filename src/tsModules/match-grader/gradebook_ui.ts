@@ -22,7 +22,6 @@ export class GradebookUi extends HTMLElement {
 
   private matchSheetUi: MatchSheetUi = new MatchSheetUi;
   private banner: EphemeralBanner = new EphemeralBanner;
-  private videoTimePollingInterval: number | null = null;
 
   connectedCallback() {
     this.innerHTML = `Loading project data.`;
@@ -36,6 +35,7 @@ export class GradebookUi extends HTMLElement {
     }, 1000);
   }
 
+  // This should only be called once as we don't clean up the resources.
   // Must call this to load the editor
   async loadOrCreateProjectInUi(id: string) {
     const finalProjectId = await this.gradebookMgr.loadOrCreateProject(id);
@@ -55,15 +55,6 @@ export class GradebookUi extends HTMLElement {
     this.youtubePlayerUi = this.querySelector('youtube-player-ui')! as YoutubePlayerUi;
     await this.updateYoutubePlayer();
 
-    if (this.config.moveCursorUpBasedOnVideoTime) {
-      if (this.videoTimePollingInterval) {
-        clearInterval(this.videoTimePollingInterval);
-      }
-      this.videoTimePollingInterval = window.setInterval(() => {
-        this.moveToRallyContainingTime();
-      }, 1000);
-    }
-
     const addYoutubeBtn = this.querySelector('#add-youtube-btn')! as HTMLButtonElement;
     addYoutubeBtn.onclick = _ => this.obtainYoutubeUrl();
 
@@ -71,6 +62,23 @@ export class GradebookUi extends HTMLElement {
       this.moveCursorToFirstRally();
     }
     this.renderSheet();
+
+    if (this.config.moveCursorUpBasedOnVideoTime) {
+      window.setInterval(() => {
+        this.moveToRallyContainingTime();
+      }, 1000);
+    }
+
+    if (this.config.spoilerColumns.length > 0) {
+      window.setInterval(() => {
+        console.log(this.videoTimeIsBeyondCurrentRally());
+        if (this.videoTimeIsBeyondCurrentRally()) {
+          // TODO think of how to make this more efficient
+          // Design a publisher to notify when the video time passed certain key points.
+          this.renderSheet(true);
+        }
+      }, 1000);
+    }
 
     return finalProjectId;
   }
@@ -289,8 +297,8 @@ export class GradebookUi extends HTMLElement {
     }
   }
 
-  private renderSheet() {
-    this.matchSheetUi.render(this.genSheet());
+  private renderSheet(revealSpoiler = false) {
+    this.matchSheetUi.render(this.genSheet(revealSpoiler));
   }
 
   private obtainYoutubeUrl() {
@@ -373,7 +381,18 @@ export class GradebookUi extends HTMLElement {
     this.setRallyIdxAndVideo(this.gradebookMgr.project.matchData.rallies.length - 1);
   }
 
-  private genSheet(): Cell[][] {
+  private videoTimeIsBeyondCurrentRally() {
+    const rally = this.gradebookMgr.getCurrentRally();
+    if (!rally) {
+      return true;
+    }
+    const currentTime = this.getNowTime();
+    return currentTime.videoIndex > rally.endTime.videoIndex || 
+           (currentTime.videoIndex === rally.endTime.videoIndex && 
+            currentTime.ms > rally.endTime.ms);
+  }
+
+  private genSheet(revealSpoiler = false): Cell[][] {
     const project = this.gradebookMgr.project;
     const cursor = project.cursor;
     const rows = [];
@@ -450,6 +469,7 @@ export class GradebookUi extends HTMLElement {
         rallyIdx: slicedIdx + firstRallyIdxToShow - 1,
         cursor,
         plot,
+        revealSpoiler,
       }, this.config));
     });
     return rows;

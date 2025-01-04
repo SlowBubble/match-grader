@@ -93,6 +93,7 @@ export interface RallyRowData {
   rallyIdx: number;
   cursor: {rallyIdx: number, colIdx: number};
   plot?: {text: string, isMyPlot: boolean};
+  revealSpoiler?: boolean;
 }
 
 export function genRallyRow(data: RallyRowData, config: GradebookUiConfig): Cell[] {
@@ -115,7 +116,7 @@ export function genRallyRow(data: RallyRowData, config: GradebookUiConfig): Cell
   const isSpoilerRow = data.rallyIdx <= data.cursor.rallyIdx;
   return config.visibleColumns.map((col, colIdx) => {
     const selected = (data.rallyIdx === data.cursor.rallyIdx) && (colIdx === data.cursor.colIdx);
-    if (isSpoilerRow && config.spoilerColumns.includes(col)) {
+    if (!data.revealSpoiler && isSpoilerRow && config.spoilerColumns.includes(col)) {
       return new Cell('?', makeOpts({ selected: selected }));
     } 
     switch (col) {

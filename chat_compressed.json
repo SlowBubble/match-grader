@@ -1,9 +1,3 @@
 [
-  "Remove the createdAt column",
-  "specify 2 different links, the matchUpLink and the editLink",
-  "Add a column before the edit column that displays the number of rallies for the project",
-  "Only show the edit and action column only if the user is signed in and the uid matches the owner field.",
-  "Add a keyboard shortcut to go to /edit.html when you press c",
-  "Sort the table by the most rallies first",
-  "Add some shortcut documentations in menu-container\nf: toggle fullscreen\nz, x: slow-mo\nup, enter: move to next point"
+  "implement videoTimeIsBeyondCurrentRally"
 ]

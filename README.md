@@ -3,7 +3,6 @@
 
 ## Doing
 
-- Reveal spoiler after endTime is reached
 
 - Advanced stats like set pt number, double fault number.
 
@@ -15,6 +14,8 @@
   - Need to consider how cursor works (cursor should be based on the sorted list, not the list before sorting)
 
 ## Done
+
+- Reveal spoiler after endTime is reached
 
 ## P1
 
