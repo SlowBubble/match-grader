@@ -5,10 +5,11 @@
 
 - Watch Mode: 
   - moveCursorUpFromVideoTime = true
+  - Enter key should be the same as going up.
 
 ## Done
 
-  - Implement spoilerColumns
+Fixed 2 bugs.
 
 ## P1
 
@@ -28,6 +29,13 @@
     - slice by first vs second and serve vs return
 
 - Consider making upDownArrowJumpsToStartTime = true always (remove impl that uses it).
+
+### Sorting
+
+- Certain display that depends on prevRallyCtx will break
+  - Have an option to display always (not conditioned on prevRallyCtx)
+- Do sorting --> Do rendering independent of prevRallyCtx and rallyIdx
+  - Need to consider how cursor works (cursor should be based on the sorted list, not the list before sorting)
 
 ## P2
 

@@ -14,11 +14,6 @@ export class RallyContext {
       return `Pt. ${server}`;
     } else if (this.rally.result === RallyResult.PtReturner) {
       return `Pt. ${returner}`;
-    } else if (this.rally.result === RallyResult.Fault) {
-      if (this.isSecondServe()) {
-        return this.rally.isMyServe ? `${redHeart} ${whiteBall}` : `${whiteBall} ${redHeart}`;
-      }
-      return this.rally.isMyServe ? `${yellowBall} ${whiteBall}` : `${whiteBall} ${yellowBall}`;
     }
     return this.rally.result;
   }
@@ -128,13 +123,15 @@ export class RallyContext {
     }
     const winnerIsMe = this.winnerIsMe();
     const winnerIsOppo = this.winnerIsOppo();
-    if (!winnerIsMe && !winnerIsOppo) {
+    const myConversion = myGamePt && winnerIsMe;
+    const oppoConversion = oppoGamePt && winnerIsOppo;
+    if (!myConversion && !oppoConversion) {
       return;
     }
 
     return {
       text: 'Converted',
-      isMyPlot: winnerIsMe,
+      isMyPlot: myConversion,
     };
   }
 

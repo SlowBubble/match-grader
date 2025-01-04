@@ -330,7 +330,7 @@ export class GradebookUi extends HTMLElement {
 
   private getNowTime() {
     const nowSec = this.youtubePlayerUi.youtubePlayer.getCurrentTime();
-    return new Time(Math.round(nowSec * 1000));
+    return new Time(Math.round(nowSec * 1000), this.currentUrlIdx);
   }
 
   private updateInputStartTime() {
@@ -420,9 +420,11 @@ export class GradebookUi extends HTMLElement {
         plot = rallyCtx.toPlot();
       }
       let prevRallyCtx = null;
-      if (!plot && slicedIdx + 1 < slicedContexts.length) {
+      if (slicedIdx + 1 < slicedContexts.length) {
         prevRallyCtx = slicedContexts[slicedIdx + 1];
-        plot = prevRallyCtx.getPlotForNextRally();
+        if (!plot) {
+          plot = prevRallyCtx.getPlotForNextRally();
+        }
       }
 
       rows.push(genRallyRow({
