@@ -1,6 +1,8 @@
 import { GradebookProject } from "./models/gradebook_models";
 import { FirestoreDao } from "./firestore_dao";
 import { auth } from "../firebase/config";
+import { Time } from "./models/Time";
+import { Rally } from "./models/rally";
 
 const dao = new FirestoreDao();
 
@@ -40,62 +42,18 @@ export class GradebookMgr {
     return finalProjectId;
   }
 
-  getRelevantRallies() {
-    return this.project.matchData.rallies.toReversed();
+  findRallyIdx(startTime: Time) {
+    return this.project.matchData.rallies.findIndex(rally => {
+      return startTime.equals(rally.startTime);
+    });
   }
 
-  getCurrentRally() {
-    const cursor = this.project.cursor;
-    return this.getRelevantRallies()[cursor.rallyIdx];
-  }
-
-  setRallyIdx(idx: number) {
-    const cursor = this.project.cursor;
-    if (idx < 0) {
-      cursor.rallyIdx = -1;
-    }
-    if (idx >= this.getRelevantRallies().length) {
-      cursor.rallyIdx = this.getRelevantRallies().length - 1;
-    }
-    cursor.rallyIdx = idx;
-  }
-
-  moveRallyIdx(num: number, startColIdx: number) {
-    const cursor = this.project.cursor;
-    cursor.rallyIdx += num;
-    if (cursor.rallyIdx < 0) {
-      cursor.rallyIdx = -1;
-      cursor.colIdx = startColIdx;
-      return;
-    }
-    const rallies = this.getRelevantRallies();
-    if (cursor.rallyIdx >= rallies.length) {
-      cursor.rallyIdx = rallies.length - 1;
-    }
-  }
-  moveColIdx(num: number, totalCols: number) {
-    const cursor = this.project.cursor;
-    cursor.colIdx += num;
-    if (cursor.colIdx >= totalCols) {
-      cursor.colIdx = totalCols - 1;
-      return;
-    }
-    if (cursor.colIdx < 0) {
-      cursor.colIdx = 0;
-    }
-  }
-  removeCurrRally() {
-    const rallyIdx = this.project.cursor.rallyIdx;
-    if (rallyIdx < 0) {
-      return;
-    }
-    // Reversed
-    const currRally = this.getCurrentRally();
-    if (!currRally) {
+  removeRally(specifiedRally: Rally | undefined) {
+    if (!specifiedRally) {
       return;
     }
     this.project.matchData.rallies = this.project.matchData.rallies.filter(rally => {
-      return !currRally.startTime.equals(rally.startTime);
+      return !specifiedRally.startTime.equals(rally.startTime);
     });
   }
 }

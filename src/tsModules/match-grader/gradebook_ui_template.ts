@@ -76,7 +76,7 @@ export const htmlTemplate = `
           </div>
         </div>
       </div>
-      <div><match-sheet-ui></match-sheet-ui></div>
+      <div><sheet-ui></sheet-ui></div>
     `;
 
 // TODO add this back

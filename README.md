@@ -7,6 +7,15 @@
 
 ### Sorting
 
+#### Refactoring
+
+Next:
+- moveColIdx
+- isSpoilerRow
+- replace rallyIdx with rowIdx
+
+#### Ideas
+
 - Certain display that depends on prevRallyCtx will break
   - Have an option to display always (not conditioned on prevRallyCtx)
 - Do sorting --> Do rendering independent of prevRallyCtx and rallyIdx
@@ -14,7 +23,8 @@
 
 ## Done
 
-- Reveal spoiler after endTime is reached
+- Implement hideFutureRallies according to revealedRallyIdx
+- Replace project.cursor with matchSheetUi.getRowIdx, ...
 
 ## P1
 

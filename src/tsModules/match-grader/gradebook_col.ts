@@ -1,4 +1,4 @@
-import { Cell, makeOpts } from "./match_sheet_ui";
+import { Cell, makeOpts } from "./sheet_ui";
 import { ColumnName, GradebookUiConfig } from "./gradebook_ui_config";
 import { RallyContext } from "./models/rally_context";
 import { Time } from "./models/Time";
@@ -35,7 +35,6 @@ export interface FirstRowData {
   latestRallyCtx: RallyContext;
   latestPlot?: {text: string, isMyPlot: boolean};
   inputStartTime: Time | null;
-  cursorAtTop: boolean;
   setupInputStartTimeBtn: () => void;
   setupInputEndTimeBtn: () => void;
 }
@@ -58,7 +57,6 @@ export function genFirstRow(data: FirstRowData, config: GradebookUiConfig): Cell
         return new Cell(data.latestRallyCtx.toGameScoreStr());
       case ColumnName.GAME_SCORE:
         return new Cell(score.toPointsStr(), makeOpts({
-          selected: data.cursorAtTop && !config.enableMutation,
         }));
       case ColumnName.START_TIME:
         if (!config.enableMutation) {
@@ -66,7 +64,6 @@ export function genFirstRow(data: FirstRowData, config: GradebookUiConfig): Cell
         }
         return new Cell(startTime, makeOpts({
         setupFunc: data.setupInputStartTimeBtn,
-        selected: data.cursorAtTop && !hasInputStartTime,
         }));
       case ColumnName.END_TIME:
         if (!config.enableMutation) {
@@ -74,7 +71,6 @@ export function genFirstRow(data: FirstRowData, config: GradebookUiConfig): Cell
         }
         return new Cell(endTime, makeOpts({
           setupFunc: data.setupInputEndTimeBtn,
-          selected: data.cursorAtTop && hasInputStartTime,
         }));
       case ColumnName.PLOT:
         return new Cell(data.latestPlot?.text, makeOpts({
@@ -90,8 +86,6 @@ export interface RallyRowData {
   rallyCtx: RallyContext;
   myName: string;
   oppoName: string;
-  rallyIdx: number;
-  cursor: {rallyIdx: number, colIdx: number};
   plot?: {text: string, isMyPlot: boolean};
   revealSpoiler?: boolean;
 }
@@ -113,48 +107,47 @@ export function genRallyRow(data: RallyRowData, config: GradebookUiConfig): Cell
   const server = rally.isMyServe ? data.myName :
     `${"".padStart(data.myName.length, "_")}${data.oppoName}`;
 
-  const isSpoilerRow = data.rallyIdx <= data.cursor.rallyIdx;
-  return config.visibleColumns.map((col, colIdx) => {
-    const selected = (data.rallyIdx === data.cursor.rallyIdx) && (colIdx === data.cursor.colIdx);
-    if (!data.revealSpoiler && isSpoilerRow && config.spoilerColumns.includes(col)) {
-      return new Cell('?', makeOpts({ selected: selected }));
+  return config.visibleColumns.map((col) => {
+    if (!data.revealSpoiler && config.spoilerColumns.includes(col)) {
+      return new Cell('?');
     } 
     switch (col) {
       case ColumnName.SERVER:
         return new Cell(
           prevRallyIsPoint ? server : '', 
-          makeOpts({ removeBottomBorder: !prevRallyIsPoint, selected }));
+          makeOpts({ removeBottomBorder: !prevRallyIsPoint }));
       case ColumnName.SET_SCORE:
         return new Cell(data.rallyCtx.toGameScoreStr(), 
-          makeOpts({ removeBottomBorder: !prevRallyIsPoint, selected }));
+          makeOpts({ removeBottomBorder: !prevRallyIsPoint }));
       case ColumnName.GAME_SCORE:
         return new Cell(prevRallyIsPoint ? score.toPointsStr() : '', 
-          makeOpts({ removeBottomBorder: !prevRallyIsPoint, selected }));
+          makeOpts({ removeBottomBorder: !prevRallyIsPoint }));
       case ColumnName.START_TIME:
-        return new Cell(formatSecondsToTimeString(rally.startTime.ms),
-          makeOpts({ selected }));
+        return new Cell(formatSecondsToTimeString(rally.startTime.ms));
       case ColumnName.END_TIME:
-        return new Cell(rally.getDurationStr(),
-          makeOpts({ selected }));
+        return new Cell(rally.getDurationStr());
       case ColumnName.RESULT:
         return new Cell(
-          !config.enableMutation || data.rallyIdx > 0 ? data.rallyCtx.getResultSymbolStr() : 
+          // !config.enableMutation || data.rallyIdx > 0 ? data.rallyCtx.getResultSymbolStr() : 
             data.rallyCtx.getResultStr(data.myName, data.oppoName),
-          makeOpts({ alignCenter: true, selected }));
+          makeOpts({ alignCenter: true }));
       case ColumnName.WINNER_LAST_SHOT:
         return new Cell(getShotRatingStr(true, data.rallyCtx),
-          makeOpts({ alignRight: !winnerIsMe, removeBottomBorder: !prevRallyIsPoint, selected }));
+          makeOpts({ alignRight: !winnerIsMe, removeBottomBorder: !prevRallyIsPoint }));
       case ColumnName.LOSER_PREVIOUS_SHOT:
         return new Cell(getShotRatingStr(false, data.rallyCtx),
-          makeOpts({ alignRight: winnerIsMe, removeBottomBorder: !prevRallyIsPoint, selected }));
+          makeOpts({ alignRight: winnerIsMe, removeBottomBorder: !prevRallyIsPoint }));
       case ColumnName.PLOT:
         return new Cell(data.plot?.text,
-          makeOpts({ alignRight: !data.plot?.isMyPlot, removeBottomBorder: !prevRallyIsPoint, selected }));
+          makeOpts({ alignRight: !data.plot?.isMyPlot, removeBottomBorder: !prevRallyIsPoint }));
       case ColumnName.WINNER_RISK:
         return new Cell(getRiskLevelStr(data.rallyCtx),
-          makeOpts({ alignRight: !winnerIsMe, removeBottomBorder: !prevRallyIsPoint, selected }));
+          makeOpts({ alignRight: !winnerIsMe, removeBottomBorder: !prevRallyIsPoint }));
       default:
-        return new Cell('', makeOpts({ selected }));
+        return new Cell('');
     }
+  }).map(cell => {
+    cell.data = rally;
+    return cell;
   });
 }
