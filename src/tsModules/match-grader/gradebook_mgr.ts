@@ -56,4 +56,9 @@ export class GradebookMgr {
       return !specifiedRally.startTime.equals(rally.startTime);
     });
   }
+  getRally(startTime: Time) {
+    return this.project.matchData.rallies.find(rally => {
+      return startTime.equals(rally.startTime);
+    });
+  }
 }

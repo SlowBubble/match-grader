@@ -17,4 +17,7 @@ export class Time {
   toString() {
     return `${this.ms}-${this.videoIndex}`;
   }
+  greaterThan(other: Time) {
+    return this.videoIndex > other.videoIndex || (this.videoIndex === other.videoIndex && this.ms > other.ms);
+  }
 }

@@ -67,7 +67,13 @@ export class GradebookUi extends HTMLElement {
     // Need to render before moving cursor since the data needed to seek video time is in the sheet.
     if (this.config.startFromBeginning) {
       this.moveCursorToFirstRally();
+      this.sheetUi.setColIdx(this.getColIndex(ColumnName.GAME_SCORE));
     }
+    if (this.config.enableMutation) {
+      this.moveRowIdxAndVideo(1);
+      this.sheetUi.setColIdx(this.getColIndex(ColumnName.START_TIME));
+    }
+    this.renderSheet();
 
     if (this.config.moveCursorUpBasedOnVideoTime) {
       window.setInterval(() => {
@@ -161,7 +167,8 @@ export class GradebookUi extends HTMLElement {
     if (!cell || !cell.data) {
       return;
     }
-    return cell.data as Rally;
+    const rally = cell.data as Rally;
+    return this.gradebookMgr.getRally(rally.startTime);
   }
 
   private moveVideoToCurrentRally(paddingMs = -1000) {
@@ -169,7 +176,16 @@ export class GradebookUi extends HTMLElement {
     if (rally) {
       const startTime = new Time(rally.startTime.ms + paddingMs, rally.startTime.videoIndex);
       this.moveTo(startTime);
-      // TODO see if we want moveTo(endTime) if the cursor is on the end time column.
+    } else {
+      const rallies = this.gradebookMgr.project.matchData.rallies;
+      const lastRally = rallies[rallies.length - 1];
+      if (lastRally) {
+        const time = new Time(lastRally.endTime.ms, lastRally.endTime.videoIndex);
+        if (time.greaterThan(this.getCurrTime())) {
+          this.moveTo(time);
+        }
+      }
+
     }
   }
 
@@ -202,6 +218,14 @@ export class GradebookUi extends HTMLElement {
       this.renderSheet();
     } else {
       this.sheetUi.moveRowIdx(num);
+    }
+
+    if (this.config.enableMutation && this.sheetUi.getRowIdx() === 0) {
+      if (this.inputStartTime) {
+        this.sheetUi.setColIdx(this.getColIndex(ColumnName.END_TIME));
+      } else {
+        this.sheetUi.setColIdx(this.getColIndex(ColumnName.START_TIME));
+      }
     }
 
     if (this.config.upDownArrowJumpsToStartTime) {
@@ -239,6 +263,7 @@ export class GradebookUi extends HTMLElement {
     } else if (matchKey(evt, 'cmd+z') && this.config.enableMutation) {
       if (this.inputStartTime) {
         this.inputStartTime = null;
+        this.sheetUi.setColIdx(this.getColIndex(ColumnName.START_TIME));
       }
     } else if (matchKey(evt, 'enter')) {
       if (this.config.enableMutation) {
@@ -277,7 +302,7 @@ export class GradebookUi extends HTMLElement {
       this.moveRowIdxAndVideo(-1);
     } else if (col === ColumnName.END_TIME) {
       if (this.config.upDownArrowJumpsToStartTime) {
-        rally.endTime = this.getNowTime();
+        rally.endTime = this.getCurrTime();
         // move to start time col of next rally
         this.sheetUi.moveColIdx(-1);
         this.moveRowIdxAndVideo(-1);
@@ -318,6 +343,7 @@ export class GradebookUi extends HTMLElement {
       const next = opposite ? idx - 1 : idx + 1 + rallyResultToIndex.size;
       const nextIdx = next % rallyResultToIndex.size;
       rally.result = rallyResultVals[nextIdx];
+      console.log(rally);
     } else if (col === ColumnName.WINNER_LAST_SHOT) {
       const ratingChange = opposite ? 1 : -1;
       rally.stat.winnerLastShotQuality = mod(
@@ -390,13 +416,14 @@ export class GradebookUi extends HTMLElement {
     }
   }
 
-  private getNowTime() {
+  private getCurrTime() {
     const nowSec = this.youtubePlayerUi.youtubePlayer.getCurrentTime();
     return new Time(Math.round(nowSec * 1000), this.currentUrlIdx);
   }
 
   private updateInputStartTime() {
-    this.inputStartTime = this.getNowTime();
+    this.inputStartTime = this.getCurrTime();
+    this.sheetUi.setColIdx(this.getColIndex(ColumnName.END_TIME));
     this.renderSheet();
   }
 
@@ -405,11 +432,11 @@ export class GradebookUi extends HTMLElement {
       console.warn('cannot promote rally without inputStartTime');
       return;
     }
-    const nowTime = this.getNowTime();
+    const nowTime = this.getCurrTime();
     const guessRes = nowTime.ms - this.inputStartTime.ms < 3500 ? RallyResult.Fault : RallyResult.PtServer;
     this.gradebookMgr.project.matchData.addRally(this.inputStartTime, nowTime, guessRes);
     this.sheetUi.setColIdx(this.getColIndex(ColumnName.RESULT));
-    this.sheetUi.setRowIdx(0);
+    this.sheetUi.setRowIdx(1);
 
     this.inputStartTime = null;
     this.renderSheet();
@@ -425,7 +452,7 @@ export class GradebookUi extends HTMLElement {
     if (!rally) {
       return true;
     }
-    const currentTime = this.getNowTime();
+    const currentTime = this.getCurrTime();
     return currentTime.videoIndex > rally.endTime.videoIndex || 
            (currentTime.videoIndex === rally.endTime.videoIndex && 
             currentTime.ms > rally.endTime.ms);
@@ -524,7 +551,7 @@ export class GradebookUi extends HTMLElement {
   }
 
   private moveToRallyContainingTimeForWatchMode(earlyMoveMs = 1000) {
-    const currentTime = this.getNowTime();
+    const currentTime = this.getCurrTime();
     const rallies = this.gradebookMgr.project.matchData.rallies;
     
     for (let idx = 0; idx < rallies.length; idx++) {

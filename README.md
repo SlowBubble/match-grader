@@ -3,32 +3,7 @@
 
 ## Doing
 
-- Advanced stats like set pt number, double fault number.
-
-### Sorting
-
-#### Refactoring
-
-Next:
-- moveColIdx
-- isSpoilerRow
-- replace rallyIdx with rowIdx
-
-#### Ideas
-
-- Certain display that depends on prevRallyCtx will break
-  - Have an option to display always (not conditioned on prevRallyCtx)
-- Do sorting --> Do rendering independent of prevRallyCtx and rallyIdx
-  - Need to consider how cursor works (cursor should be based on the sorted list, not the list before sorting)
-
-## Done
-
-- Implement hideFutureRallies according to revealedRallyIdx
-- Replace project.cursor with matchSheetUi.getRowIdx, ...
-
-## P1
-
-- Think about the UX for adding these stats (start with an overlay when you press a keyboard shortcut):
+- Think about the UX for adding these stats (when not fullscreen):
   - % serve pts won
     - slice by first vs second serve
   - Serve %
@@ -39,6 +14,16 @@ Next:
     - slice by first vs second and serve vs return
   - % free pts you gave to the opponent
     - slice by first vs second and serve vs return
+
+## Done
+
+Fix edit mode bug after sort refactoring.
+
+## P1
+
+- Advanced stats like set pt number, double fault number.
+- Sorting 
+
 
 - Consider making upDownArrowJumpsToStartTime = true always (remove impl that uses it).
 
