@@ -7,6 +7,7 @@ export default defineConfig({
       input: {
         index: resolve(__dirname, 'index.html'),
         view: resolve(__dirname, 'edit.html'),
+        watch: resolve(__dirname, 'watch.html'),
       },
     },
   },

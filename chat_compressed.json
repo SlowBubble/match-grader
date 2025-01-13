@@ -1,3 +1,15 @@
 [
-  "implement videoTimeIsBeyondCurrentRally"
+  "Add in these fields and the logic to update them\n- numFirstServeReturns\n- numFirstServeReturnsWon\n- numSecondServeReturns\n- numSecondServeReturnsWon",
+  "Implement getFirstServePct()",
+  "impl getSecondServePct",
+  "Impl getServePct and add to the ui",
+  "display it in the ui",
+  "Display getServePct in ui",
+  "Implement getServePointsWonPct",
+  "show getServePointsWonPct in the ui",
+  "Impl getTotalNumPoints",
+  "Impl getP1PointsWon and getP2PointsWon",
+  " impl getP1WinningPct and getP2WinningPct and display in the UI",
+  "Hi",
+  "Hi"
 ]

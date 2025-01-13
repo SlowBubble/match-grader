@@ -11,6 +11,7 @@ import { GradebookUiConfig, ColumnName } from "./gradebook_ui_config";
 import { htmlTemplate } from "./gradebook_ui_template";
 import { genFirstRow, genHeaderCol, genRallyRow } from "./gradebook_col";
 import { defaultSortState } from "./sort_state";
+import { StatCell, StatUi } from "./stat_ui";
 
 // Top-level UI to handle everything
 export class GradebookUi extends HTMLElement {
@@ -25,6 +26,7 @@ export class GradebookUi extends HTMLElement {
   private gradebookMgr = new GradebookMgr;
 
   private sheetUi: SheetUi = new SheetUi;
+  private statUi: StatUi = new StatUi;
   private banner: EphemeralBanner = new EphemeralBanner;
 
   connectedCallback() {
@@ -46,6 +48,7 @@ export class GradebookUi extends HTMLElement {
 
     this.innerHTML = htmlTemplate;
     this.banner = this.querySelector('ephemeral-banner') as EphemeralBanner;
+    this.statUi = this.querySelector('stat-ui')! as StatUi;
     this.sheetUi = this.querySelector('sheet-ui')! as SheetUi;
     // TODO see if we can move part of this inside SheetUi (replace setRowIdxAndVideo with moveVideoToCurrentRally)
     this.sheetUi.onCellClick((cellLoc: CellLoc) => {
@@ -59,9 +62,6 @@ export class GradebookUi extends HTMLElement {
 
     this.youtubePlayerUi = this.querySelector('youtube-player-ui')! as YoutubePlayerUi;
     await this.updateYoutubePlayer();
-
-    const addYoutubeBtn = this.querySelector('#add-youtube-btn')! as HTMLButtonElement;
-    addYoutubeBtn.onclick = _ => this.obtainYoutubeUrl();
 
     this.renderSheet();
     // Need to render before moving cursor since the data needed to seek video time is in the sheet.
@@ -162,13 +162,34 @@ export class GradebookUi extends HTMLElement {
     return this.config.hideFutureRallies;
   }
 
-  private getCurrRally() {
+  private getCurrRallyStartTime() {
     const cell = this.sheetUi.getSelectedCell();
     if (!cell || !cell.data) {
       return;
     }
     const rally = cell.data as Rally;
-    return this.gradebookMgr.getRally(rally.startTime);
+    return rally.startTime;
+  }
+
+  private getCurrRally() {
+    const time = this.getCurrRallyStartTime();
+    if (!time) {
+      return;
+    }
+    return this.gradebookMgr.getRally(time);
+  }
+
+  private getCurrRallyContext() {
+    const rallyContexts = this.gradebookMgr.project.matchData.getRallyContexts();
+    const last = rallyContexts[rallyContexts.length - 1];
+    const time = this.getCurrRallyStartTime();
+    if (!time) {
+      return last;
+    }
+    return rallyContexts.find(rallyCtx => {
+      return time.equals(rallyCtx.rally.startTime);
+    }) || last;
+    
   }
 
   private moveVideoToCurrentRally(paddingMs = -1000) {
@@ -364,6 +385,7 @@ export class GradebookUi extends HTMLElement {
   }
 
   private renderSheet(revealSpoiler = false) {
+    this.statUi.render(this.genStatSheet());
     this.sheetUi.render(this.genSheet(revealSpoiler));
   }
 
@@ -456,6 +478,21 @@ export class GradebookUi extends HTMLElement {
     return currentTime.videoIndex > rally.endTime.videoIndex || 
            (currentTime.videoIndex === rally.endTime.videoIndex && 
             currentTime.ms > rally.endTime.ms);
+  }
+
+  private genStatSheet() {
+    const rows = [];
+    const project = this.gradebookMgr.project;
+    rows.push([new StatCell(''), new StatCell(project.matchData.myName), new StatCell(project.matchData.oppoName)]);
+
+    const stat = this.getCurrRallyContext().matchStatBeforeRally;
+    rows.push([new StatCell('Pts won %'), new StatCell(stat.getP1WinningPct()), new StatCell(stat.getP2WinningPct())]);
+    rows.push([new StatCell('Serve pts won %'), new StatCell(stat.p1Stats.getServePointsWonPct()), new StatCell(stat.p2Stats.getServePointsWonPct())]);
+    rows.push([new StatCell('1st serve won %'), new StatCell(stat.p1Stats.getFirstServePointsWonPct()), new StatCell(stat.p2Stats.getFirstServePointsWonPct())]);
+    rows.push([new StatCell('2nd serve won %'), new StatCell(stat.p1Stats.getSecondServePointsWonPct()), new StatCell(stat.p2Stats.getSecondServePointsWonPct())]);
+    rows.push([new StatCell('1st serve %'), new StatCell(stat.p1Stats.getFirstServePct()), new StatCell(stat.p2Stats.getFirstServePct())]);
+    rows.push([new StatCell('2nd serve %'), new StatCell(stat.p1Stats.getSecondServePct()), new StatCell(stat.p2Stats.getSecondServePct())]);
+    return rows;
   }
 
   private genSheet(revealSpoiler = false): Cell[][] {

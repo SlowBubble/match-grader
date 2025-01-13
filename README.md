@@ -3,34 +3,51 @@
 
 ## Doing
 
-- Think about the UX for adding these stats (when not fullscreen):
-  - % serve pts won
-    - slice by first vs second serve
-  - Serve %
-    - slice by first vs second serve
-  - % return pts won
-    - slice by first vs second serve
-  - % winning pts that are green
-    - slice by first vs second and serve vs return
-  - % free pts you gave to the opponent
-    - slice by first vs second and serve vs return
+
 
 ## Done
 
-Fix edit mode bug after sort refactoring.
+- % serve pts won
+  - slice by first vs second serve
+- Serve %
+  - slice by first vs second serve
+
 
 ## P1
 
-- Advanced stats like set pt number, double fault number.
+### Create a video with the score
+
+- Press x to export.
+- M1: Will ask for the video file
+
+## P1.5
+
 - Sorting 
 
+### Design stats impl
+- Slice stats by current game and current set and overall???
+  - Can then use it for things like break pt #2.
 
-- Consider making upDownArrowJumpsToStartTime = true always (remove impl that uses it).
+- P1 stats
+  - % winning pts that are green
+    - slice by first vs second and serve vs return
+  - % losing pts that are free pts
+    - slice by first vs second and serve vs return
 
+- P2 stats
+  - Num game pts
+  - Game pt conversion %
+  - Num break pts
+  - Break pt conversion %
+  - Num break opportunities
 
+- Think about what stats to highlight
+  - (e.g. serving stats at the end of a server's game)
+  - If a certain stats have enough sample size and dips below a certain threshold or much worse than the oppo.
 
 ## P2
 
+- Consider making upDownArrowJumpsToStartTime = true always (remove impl that uses it).
 - Design a better pub-sub for when video time passes a key point.
 - Think of other features for watch mode
   - Option: Skip the pauses automatically

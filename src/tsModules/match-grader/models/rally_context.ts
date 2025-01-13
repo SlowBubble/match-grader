@@ -1,3 +1,4 @@
+import { MatchStat } from "./match_stat";
 import { Rally, RallyResult } from "./rally";
 import {  isTieBreakTime, PersonScore, Score } from "./score";
 
@@ -5,6 +6,7 @@ export class RallyContext {
   constructor(
     public rally = new Rally(),
     public scoreBeforeRally = new Score(),
+    public matchStatBeforeRally = new MatchStat(),
   ) {}
 
   getResultStr(myName: string, oppoName: string) {
@@ -202,4 +204,74 @@ function isSubjectSetPoint(subjectScore: PersonScore, otherScore: PersonScore) {
     return true;
   }
   return subjectScore.games >= 5 && subjectScore.games - otherScore.games >= 1;
+}
+
+
+export function annotateMatchStat(rallyContexts: RallyContext[]) {
+  const stat = new MatchStat();
+  rallyContexts.forEach((rallyContext) => {
+    rallyContext.matchStatBeforeRally = stat.clone();
+
+    // Check game points and set points using direct score comparison
+    if (isSubjectGamePoint(rallyContext.scoreBeforeRally.p1, rallyContext.scoreBeforeRally.p2)) {
+      stat.p1Stats.numGamePts++;
+      if (isSubjectSetPoint(rallyContext.scoreBeforeRally.p1, rallyContext.scoreBeforeRally.p2)) {
+        stat.p1Stats.numSetPts++;
+      }
+    }
+    if (isSubjectGamePoint(rallyContext.scoreBeforeRally.p2, rallyContext.scoreBeforeRally.p1)) {
+      stat.p2Stats.numGamePts++;
+      if (isSubjectSetPoint(rallyContext.scoreBeforeRally.p2, rallyContext.scoreBeforeRally.p1)) {
+        stat.p2Stats.numSetPts++;
+      }
+    }
+
+    if (rallyContext.rally.isMyServe) {
+      const serverStats = stat.p1Stats;
+      const isSecondServe = rallyContext.isSecondServe();
+      
+      if (isSecondServe) {
+        if (rallyContext.rally.result !== RallyResult.Let) {
+          serverStats.numSecondServes++;
+        }
+        if (rallyContext.rally.result !== RallyResult.Fault) {
+          serverStats.numSecondServesMade++;
+          if (rallyContext.rally.result === RallyResult.PtServer) {
+            serverStats.numSecondServesWon++;
+          }
+        }
+      } else {
+        if (rallyContext.rally.result !== RallyResult.Let) {
+          serverStats.numFirstServes++;
+        }
+        if (rallyContext.rally.result !== RallyResult.Fault) {
+          serverStats.numFirstServesMade++;
+          if (rallyContext.rally.result === RallyResult.PtServer) {
+            serverStats.numFirstServesWon++;
+          }
+        }
+      }
+    } else {
+      const serverStats = stat.p2Stats;
+      const isSecondServe = rallyContext.isSecondServe();
+      
+      if (!isSecondServe) {
+        serverStats.numFirstServes++;
+        if (rallyContext.rally.result !== RallyResult.Fault) {
+          serverStats.numFirstServesMade++;
+          if (rallyContext.rally.result === RallyResult.PtServer) {
+            serverStats.numFirstServesWon++;
+          }
+        }
+      } else {
+        serverStats.numSecondServes++;
+        if (rallyContext.rally.result !== RallyResult.Fault) {
+          serverStats.numSecondServesMade++;
+          if (rallyContext.rally.result === RallyResult.PtServer) {
+            serverStats.numSecondServesWon++;
+          }
+        }
+      }
+    }
+  });
 }

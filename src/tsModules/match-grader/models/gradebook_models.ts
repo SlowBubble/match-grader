@@ -1,5 +1,5 @@
 import { Rally, RallyResult } from "./rally";
-import { RallyContext } from "./rally_context";
+import { annotateMatchStat, RallyContext } from "./rally_context";
 import { isTieBreakTime } from "./score";
 import { Time } from "./Time";
 
@@ -112,6 +112,8 @@ export class MatchData {
       currContext = nextContext;
     });
     contexts.push(currContext);
+
+    annotateMatchStat(contexts);
     return contexts;
   }
 

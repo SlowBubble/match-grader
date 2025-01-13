@@ -41,7 +41,6 @@ export interface FirstRowData {
 
 export function genFirstRow(data: FirstRowData, config: GradebookUiConfig): Cell[] {
   const score = data.latestRallyCtx.scoreBeforeRally;
-  const hasInputStartTime = data.inputStartTime !== null;
   const startTime = data.inputStartTime !== null ?
   formatSecondsToTimeString(data.inputStartTime.ms) :
   `<button id='input-start-time'>(Enter)</button>`;

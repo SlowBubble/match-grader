@@ -35,7 +35,7 @@ export enum ColumnName {
   WINNER_LAST_SHOT = "WINNER_LAST_SHOT",
   LOSER_PREVIOUS_SHOT = "LOSER_PREVIOUS_SHOT",
   PLOT = "PLOT",
-  WINNER_RISK = "WINNER_RISK"
+  WINNER_RISK = "WINNER_RISK",
 };
 
 export const visibleColumnsForWatchMode = [
