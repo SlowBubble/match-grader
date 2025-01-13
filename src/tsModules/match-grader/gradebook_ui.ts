@@ -486,12 +486,26 @@ export class GradebookUi extends HTMLElement {
     rows.push([new StatCell(''), new StatCell(project.matchData.myName), new StatCell(project.matchData.oppoName)]);
 
     const stat = this.getCurrRallyContext().matchStatBeforeRally;
-    rows.push([new StatCell('Pts won %'), new StatCell(stat.getP1WinningPct()), new StatCell(stat.getP2WinningPct())]);
-    rows.push([new StatCell('Serve pts won %'), new StatCell(stat.p1Stats.getServePointsWonPct()), new StatCell(stat.p2Stats.getServePointsWonPct())]);
-    rows.push([new StatCell('1st serve won %'), new StatCell(stat.p1Stats.getFirstServePointsWonPct()), new StatCell(stat.p2Stats.getFirstServePointsWonPct())]);
-    rows.push([new StatCell('2nd serve won %'), new StatCell(stat.p1Stats.getSecondServePointsWonPct()), new StatCell(stat.p2Stats.getSecondServePointsWonPct())]);
-    rows.push([new StatCell('1st serve %'), new StatCell(stat.p1Stats.getFirstServePct()), new StatCell(stat.p2Stats.getFirstServePct())]);
-    rows.push([new StatCell('2nd serve %'), new StatCell(stat.p1Stats.getSecondServePct()), new StatCell(stat.p2Stats.getSecondServePct())]);
+    rows.push([new StatCell('🟢'), new StatCell(stat.getP1WinningPct()), new StatCell(stat.getP2WinningPct())]);
+    rows.push([new StatCell('Serve 🟢'), new StatCell(stat.p1Stats.getServePointsWonPct()), new StatCell(stat.p2Stats.getServePointsWonPct())]);
+    rows.push([new StatCell('Serve #1 🟢'), new StatCell(stat.p1Stats.getFirstServePointsWonPct()), new StatCell(stat.p2Stats.getFirstServePointsWonPct())]);
+    rows.push([new StatCell('Serve #2 🟢'), new StatCell(stat.p1Stats.getSecondServePointsWonPct()), new StatCell(stat.p2Stats.getSecondServePointsWonPct())]);
+    rows.push([new StatCell('Serve #1'), new StatCell(stat.p1Stats.getFirstServePct()), new StatCell(stat.p2Stats.getFirstServePct())]);
+    rows.push([new StatCell('Serve #2'), new StatCell(stat.p1Stats.getSecondServePct()), new StatCell(stat.p2Stats.getSecondServePct())]);
+    rows.push([new StatCell('Forcing💪🟢'), new StatCell(stat.getP1ForcingWinPct()), new StatCell(stat.getP2ForcingWinPct())]);
+    rows.push([new StatCell(`Serve 💪🟢`), new StatCell(stat.getP1ForcingWinPctOnServe()), new StatCell(stat.getP2ForcingWinPctOnServe())]);
+    rows.push([new StatCell(`Serv 1 💪🟢`), new StatCell(stat.getP1ForcingWinPctOnFirstServe()), new StatCell(stat.getP2ForcingWinPctOnFirstServe())]);
+    rows.push([new StatCell(`Serv 2 💪🟢`), new StatCell(stat.getP1ForcingWinPctOnSecondServe()), new StatCell(stat.getP2ForcingWinPctOnSecondServe())]);
+    rows.push([new StatCell(`Return 💪🟢`), new StatCell(stat.getP1ForcingWinPctOnReturn()), new StatCell(stat.getP2ForcingWinPctOnReturn())]);
+    rows.push([new StatCell(`Ret 1 💪🟢`), new StatCell(stat.getP1ForcingWinPctOnFirstReturn()), new StatCell(stat.getP2ForcingWinPctOnFirstReturn())]);
+    rows.push([new StatCell(`Ret 2 💪🟢`), new StatCell(stat.getP1ForcingWinPctOnSecondReturn()), new StatCell(stat.getP2ForcingWinPctOnSecondReturn())]);
+    rows.push([new StatCell('UError 🔴'), new StatCell(stat.getP1UnforcedErrorPct()), new StatCell(stat.getP2UnforcedErrorPct())]);
+    rows.push([new StatCell('Serve UE 🔴'), new StatCell(stat.getP1UnforcedErrorPctOnServe()), new StatCell(stat.getP2UnforcedErrorPctOnServe())]);
+    rows.push([new StatCell('Serv 1 UE 🔴'), new StatCell(stat.getP1UnforcedErrorPctOnFirstServe()), new StatCell(stat.getP2UnforcedErrorPctOnFirstServe())]);
+    rows.push([new StatCell('Serv 2 UE 🔴'), new StatCell(stat.getP1UnforcedErrorPctOnSecondServe()), new StatCell(stat.getP2UnforcedErrorPctOnSecondServe())]);
+    rows.push([new StatCell('Return UE 🔴'), new StatCell(stat.getP1UnforcedErrorPctOnReturn()), new StatCell(stat.getP2UnforcedErrorPctOnReturn())]);
+    rows.push([new StatCell('Ret 1 UE 🔴'), new StatCell(stat.getP1UnforcedErrorPctOn1stServeReturn()), new StatCell(stat.getP2UnforcedErrorPctOn1stServeReturn())]);
+    rows.push([new StatCell('Ret 2 UE 🔴'), new StatCell(stat.getP1UnforcedErrorPctOn2ndServeReturn()), new StatCell(stat.getP2UnforcedErrorPctOn2ndServeReturn())]);
     return rows;
   }
 

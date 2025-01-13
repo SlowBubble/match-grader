@@ -3,14 +3,13 @@
 
 ## Doing
 
-
-
 ## Done
 
-- % serve pts won
-  - slice by first vs second serve
-- Serve %
-  - slice by first vs second serve
+- P1 stats
+  - % winning pts that are green
+    - slice by first vs second and serve vs return
+  - % losing pts that are free pts
+    - slice by first vs second and serve vs return
 
 
 ## P1
@@ -27,12 +26,6 @@
 ### Design stats impl
 - Slice stats by current game and current set and overall???
   - Can then use it for things like break pt #2.
-
-- P1 stats
-  - % winning pts that are green
-    - slice by first vs second and serve vs return
-  - % losing pts that are free pts
-    - slice by first vs second and serve vs return
 
 - P2 stats
   - Num game pts

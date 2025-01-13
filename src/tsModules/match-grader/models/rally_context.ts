@@ -1,6 +1,7 @@
 import { MatchStat } from "./match_stat";
 import { Rally, RallyResult } from "./rally";
 import {  isTieBreakTime, PersonScore, Score } from "./score";
+import { isForcingWin, isUnforcedError } from './risk_level';
 
 export class RallyContext {
   constructor(
@@ -226,6 +227,12 @@ export function annotateMatchStat(rallyContexts: RallyContext[]) {
       }
     }
 
+    function isReturnerPtForSecondServe(rallyContext: RallyContext) {
+      if (!rallyContext.isSecondServe()) {
+        return false;
+      }
+      return rallyContext.rally.result === RallyResult.PtReturner || rallyContext.rally.result === RallyResult.Fault;
+    }
     if (rallyContext.rally.isMyServe) {
       const serverStats = stat.p1Stats;
       const isSecondServe = rallyContext.isSecondServe();
@@ -238,7 +245,18 @@ export function annotateMatchStat(rallyContexts: RallyContext[]) {
           serverStats.numSecondServesMade++;
           if (rallyContext.rally.result === RallyResult.PtServer) {
             serverStats.numSecondServesWon++;
+            if (isForcingWin(rallyContext)) {
+              serverStats.numSecondServeForcingWins++;
+            }
+          } else if (isReturnerPtForSecondServe(rallyContext) && isForcingWin(rallyContext)) {
+            serverStats.numSecondServeForcingWinsByReturner++;
           }
+        }
+        if (isReturnerPtForSecondServe(rallyContext) && isUnforcedError(rallyContext)) {
+          serverStats.numSecondServeUnforcedErrors++;
+        }
+        if (rallyContext.rally.result === RallyResult.PtServer && isUnforcedError(rallyContext)) {
+          serverStats.numSecondServeUnforcedErrorsByReturner++;
         }
       } else {
         if (rallyContext.rally.result !== RallyResult.Let) {
@@ -248,7 +266,18 @@ export function annotateMatchStat(rallyContexts: RallyContext[]) {
           serverStats.numFirstServesMade++;
           if (rallyContext.rally.result === RallyResult.PtServer) {
             serverStats.numFirstServesWon++;
+            if (isForcingWin(rallyContext)) {
+              serverStats.numFirstServeForcingWins++;
+            }
+          } else if (rallyContext.rally.result === RallyResult.PtReturner && isForcingWin(rallyContext)) {
+            serverStats.numFirstServeForcingWinsByReturner++;
           }
+        }
+        if (rallyContext.rally.result === RallyResult.PtReturner && isUnforcedError(rallyContext)) {
+          serverStats.numFirstServeUnforcedErrors++;
+        }
+        if (rallyContext.rally.result === RallyResult.PtServer && isUnforcedError(rallyContext)) {
+          serverStats.numFirstServeUnforcedErrorsByReturner++;
         }
       }
     } else {
@@ -261,7 +290,18 @@ export function annotateMatchStat(rallyContexts: RallyContext[]) {
           serverStats.numFirstServesMade++;
           if (rallyContext.rally.result === RallyResult.PtServer) {
             serverStats.numFirstServesWon++;
+            if (isForcingWin(rallyContext)) {
+              serverStats.numFirstServeForcingWins++;
+            }
+          } else if (rallyContext.rally.result === RallyResult.PtReturner && isForcingWin(rallyContext)) {
+            serverStats.numFirstServeForcingWinsByReturner++;
           }
+        }
+        if (rallyContext.rally.result === RallyResult.PtReturner && isUnforcedError(rallyContext)) {
+          serverStats.numFirstServeUnforcedErrors++;
+        }
+        if (rallyContext.rally.result === RallyResult.PtServer && isUnforcedError(rallyContext)) {
+          serverStats.numFirstServeUnforcedErrorsByReturner++;
         }
       } else {
         serverStats.numSecondServes++;
@@ -269,7 +309,18 @@ export function annotateMatchStat(rallyContexts: RallyContext[]) {
           serverStats.numSecondServesMade++;
           if (rallyContext.rally.result === RallyResult.PtServer) {
             serverStats.numSecondServesWon++;
+            if (isForcingWin(rallyContext)) {
+              serverStats.numSecondServeForcingWins++;
+            }
+          } else if (isReturnerPtForSecondServe(rallyContext) && isForcingWin(rallyContext)) {
+            serverStats.numSecondServeForcingWinsByReturner++;
           }
+        }
+        if (isReturnerPtForSecondServe(rallyContext) && isUnforcedError(rallyContext)) {
+          serverStats.numSecondServeUnforcedErrors++;
+        }
+        if (rallyContext.rally.result === RallyResult.PtServer && isUnforcedError(rallyContext)) {
+          serverStats.numSecondServeUnforcedErrorsByReturner++;
         }
       }
     }

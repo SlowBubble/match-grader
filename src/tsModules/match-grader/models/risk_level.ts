@@ -17,6 +17,37 @@ export function getShotRatingStr(lookAtWinner: boolean, rallyContext: RallyConte
     return shotRatingStr || '';
 }
 
+export function isUnforcedError(rallyContext: RallyContext) {
+  if (rallyContext.isDoubleFault()) {
+    return true;
+  }
+  const winnerLastShot = rallyContext.rally.stat.winnerLastShotQuality;
+  return 1 <= winnerLastShot && winnerLastShot <= 3;
+}
+
+function getRiskLevel(rallyContext: RallyContext) {
+  const winnerLastShot = rallyContext.rally.stat.winnerLastShotQuality;
+  const loserPrevShot = rallyContext.rally.stat.loserPreviousShotQuality;
+  // TODO see if we need to adjust this (2:1 for elite, 3:2 for pro, 4:3 for rec).
+  const shotRatingForToss = rallyContext.isSecondServe() ? 3 : 2;
+  const loserPrevShotOrDefault = loserPrevShot || shotRatingForToss;
+  return winnerLastShot - (3 - (loserPrevShotOrDefault - 3));
+
+}
+
+export function isForcingWin(rallyContext: RallyContext) {
+  const winnerLastShot = rallyContext.rally.stat.winnerLastShotQuality;
+  return winnerLastShot > 3;
+}
+
+export function isSafeForcingWin(rallyContext: RallyContext) {
+  if (!isForcingWin(rallyContext)) {
+    return false;
+  }
+  const riskLevel = getRiskLevel(rallyContext);
+  return 0 <= riskLevel && riskLevel <= 1;
+}
+
 export function getRiskLevelStr(rallyContext: RallyContext) {
   const rally = rallyContext.rally;
   const rallyIsDoubleFault = rallyContext.isDoubleFault();
@@ -25,7 +56,6 @@ export function getRiskLevelStr(rallyContext: RallyContext) {
     return winnerIsMe ? '◯ Double' : 'Double ◯';
   }
   const winnerLastShot = rally.stat.winnerLastShotQuality;
-  const loserPrevShot = rally.stat.loserPreviousShotQuality;
   if (winnerLastShot === 0) {
     return '';
   } else if (winnerLastShot === 1) {
@@ -36,10 +66,7 @@ export function getRiskLevelStr(rallyContext: RallyContext) {
     return winnerIsMe ? '⬜ Free' :  'Free ⬜';
   }
 
-  // TODO see if we need to adjust this (2:1 for elite, 3:2 for pro, 4:3 for rec).
-  const shotRatingForToss = rallyContext.isSecondServe() ? 3 : 2;
-  const loserPrevShotOrDefault = loserPrevShot || shotRatingForToss;
-  const riskLevel =  winnerLastShot - (3 - (loserPrevShotOrDefault - 3));
+  const riskLevel =  getRiskLevel(rallyContext);
   if (winnerIsMe) {
     return riskLevelToStr.get(riskLevel) || riskLevel.toString();
   }

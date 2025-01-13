@@ -63,6 +63,230 @@ export class MatchStat {
     const p2Points = this.getP2PointsWon();
     return `${Math.floor((p2Points / totalPoints) * 100)}%`;
   }
+
+  getP1ForcingWinPct() {
+    const totalPoints = this.getTotalNumPoints();
+    if (totalPoints === 0) {
+      return '';
+    }
+    const serverForcingWins = this.p1Stats.numFirstServeForcingWins + this.p1Stats.numSecondServeForcingWins;
+    const returnerForcingWins = this.p2Stats.numFirstServeForcingWinsByReturner + this.p2Stats.numSecondServeForcingWinsByReturner;
+    return `${Math.floor(((serverForcingWins + returnerForcingWins) / totalPoints) * 100)}%`;
+  }
+
+  getP2ForcingWinPct() {
+    const totalPoints = this.getTotalNumPoints();
+    if (totalPoints === 0) {
+      return '';
+    }
+    const serverForcingWins = this.p2Stats.numFirstServeForcingWins + this.p2Stats.numSecondServeForcingWins;
+    const returnerForcingWins = this.p1Stats.numFirstServeForcingWinsByReturner + this.p1Stats.numSecondServeForcingWinsByReturner;
+    return `${Math.floor(((serverForcingWins + returnerForcingWins) / totalPoints) * 100)}%`;
+  }
+
+  getP1ForcingWinPctOnServe() {
+    const totalServePoints = this.p1Stats.numFirstServesMade + this.p1Stats.numSecondServes;
+    if (totalServePoints === 0) {
+      return '';
+    }
+    const forcingWins = this.p1Stats.numFirstServeForcingWins + this.p1Stats.numSecondServeForcingWins;
+    return `${Math.floor((forcingWins / totalServePoints) * 100)}%`;
+  }
+
+  getP2ForcingWinPctOnServe() {
+    const totalServePoints = this.p2Stats.numFirstServesMade + this.p2Stats.numSecondServes;
+    if (totalServePoints === 0) {
+      return '';
+    }
+    const forcingWins = this.p2Stats.numFirstServeForcingWins + this.p2Stats.numSecondServeForcingWins;
+    return `${Math.floor((forcingWins / totalServePoints) * 100)}%`;
+  }
+
+  getP1ForcingWinPctOnFirstServe() {
+    if (this.p1Stats.numFirstServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p1Stats.numFirstServeForcingWins / this.p1Stats.numFirstServesMade) * 100)}%`;
+  }
+
+  getP2ForcingWinPctOnFirstServe() {
+    if (this.p2Stats.numFirstServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p2Stats.numFirstServeForcingWins / this.p2Stats.numFirstServesMade) * 100)}%`;
+  }
+
+  getP1ForcingWinPctOnSecondServe() {
+    if (this.p1Stats.numSecondServes === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p1Stats.numSecondServeForcingWins / this.p1Stats.numSecondServes) * 100)}%`;
+  }
+
+  getP2ForcingWinPctOnSecondServe() {
+    if (this.p2Stats.numSecondServes === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p2Stats.numSecondServeForcingWins / this.p2Stats.numSecondServes) * 100)}%`;
+  }
+
+  getP1ForcingWinPctOnReturn() {
+    const oppoTotalServes = this.p2Stats.numFirstServesMade + this.p2Stats.numSecondServes;
+    if (oppoTotalServes === 0) {
+      return '';
+    }
+    const forcingWins = this.p1Stats.numFirstServeForcingWinsByReturner + this.p1Stats.numSecondServeForcingWinsByReturner;
+    return `${Math.floor((forcingWins / oppoTotalServes) * 100)}%`;
+  }
+
+  getP2ForcingWinPctOnReturn() {
+    const oppoTotalServes = this.p1Stats.numFirstServesMade + this.p1Stats.numSecondServes;
+    if (oppoTotalServes === 0) {
+      return '';
+    }
+    const forcingWins = this.p2Stats.numFirstServeForcingWinsByReturner + this.p2Stats.numSecondServeForcingWinsByReturner;
+    return `${Math.floor((forcingWins / oppoTotalServes) * 100)}%`;
+  }
+
+  getP1ForcingWinPctOnFirstReturn() {
+    if (this.p2Stats.numFirstServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p1Stats.numFirstServeForcingWinsByReturner / this.p2Stats.numFirstServesMade) * 100)}%`;
+  }
+
+  getP2ForcingWinPctOnFirstReturn() {
+    if (this.p1Stats.numFirstServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p2Stats.numFirstServeForcingWinsByReturner / this.p1Stats.numFirstServesMade) * 100)}%`;
+  }
+
+  getP1ForcingWinPctOnSecondReturn() {
+    if (this.p2Stats.numSecondServes === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p1Stats.numSecondServeForcingWinsByReturner / this.p2Stats.numSecondServesMade) * 100)}%`;
+  }
+
+  getP2ForcingWinPctOnSecondReturn() {
+    if (this.p1Stats.numSecondServes === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p2Stats.numSecondServeForcingWinsByReturner / this.p1Stats.numSecondServesMade) * 100)}%`;
+  }
+
+  getP1UnforcedErrorPct() {
+    const totalPoints = this.getTotalNumPoints();
+    if (totalPoints === 0) {
+      return '';
+    }
+    const serverUEs = this.p1Stats.numFirstServeUnforcedErrors + this.p1Stats.numSecondServeUnforcedErrors;
+    const returnerUEs = this.p2Stats.numFirstServeUnforcedErrorsByReturner + this.p2Stats.numSecondServeUnforcedErrorsByReturner;
+    return `${Math.floor(((serverUEs + returnerUEs) / totalPoints) * 100)}%`;
+  }
+
+  getP2UnforcedErrorPct() {
+    const totalPoints = this.getTotalNumPoints();
+    if (totalPoints === 0) {
+      return '';
+    }
+    const serverUEs = this.p2Stats.numFirstServeUnforcedErrors + this.p2Stats.numSecondServeUnforcedErrors;
+    const returnerUEs = this.p1Stats.numFirstServeUnforcedErrorsByReturner + this.p1Stats.numSecondServeUnforcedErrorsByReturner;
+    return `${Math.floor(((serverUEs + returnerUEs) / totalPoints) * 100)}%`;
+  }
+
+  getP1UnforcedErrorPctOnServe() {
+    const totalServePoints = this.p1Stats.numFirstServesMade + this.p1Stats.numSecondServes;
+    if (totalServePoints === 0) {
+      return '';
+    }
+    const UEs = this.p1Stats.numFirstServeUnforcedErrors + this.p1Stats.numSecondServeUnforcedErrors;
+    return `${Math.floor((UEs / totalServePoints) * 100)}%`;
+  }
+
+  getP2UnforcedErrorPctOnServe() {
+    const totalServePoints = this.p2Stats.numFirstServesMade + this.p2Stats.numSecondServes;
+    if (totalServePoints === 0) {
+      return '';
+    }
+    const UEs = this.p2Stats.numFirstServeUnforcedErrors + this.p2Stats.numSecondServeUnforcedErrors;
+    return `${Math.floor((UEs / totalServePoints) * 100)}%`;
+  }
+
+  getP1UnforcedErrorPctOnFirstServe() {
+    if (this.p1Stats.numFirstServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p1Stats.numFirstServeUnforcedErrors / this.p1Stats.numFirstServesMade) * 100)}%`;
+  }
+
+  getP2UnforcedErrorPctOnFirstServe() {
+    if (this.p2Stats.numFirstServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p2Stats.numFirstServeUnforcedErrors / this.p2Stats.numFirstServesMade) * 100)}%`;
+  }
+
+  getP1UnforcedErrorPctOnSecondServe() {
+    if (this.p1Stats.numSecondServes === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p1Stats.numSecondServeUnforcedErrors / this.p1Stats.numSecondServes) * 100)}%`;
+  }
+
+  getP2UnforcedErrorPctOnSecondServe() {
+    if (this.p2Stats.numSecondServes === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p2Stats.numSecondServeUnforcedErrors / this.p2Stats.numSecondServes) * 100)}%`;
+  }
+
+  getP1UnforcedErrorPctOnReturn() {
+    const oppoTotalServes = this.p2Stats.numFirstServesMade + this.p2Stats.numSecondServesMade;
+    if (oppoTotalServes === 0) {
+      return '';
+    }
+    const UEs = this.p2Stats.numFirstServeUnforcedErrorsByReturner + this.p2Stats.numSecondServeUnforcedErrorsByReturner;
+    return `${Math.floor((UEs / oppoTotalServes) * 100)}%`;
+  }
+
+  getP2UnforcedErrorPctOnReturn() {
+    const oppoTotalServes = this.p1Stats.numFirstServesMade + this.p1Stats.numSecondServesMade;
+    if (oppoTotalServes === 0) {
+      return '';
+    }
+    const UEs = this.p1Stats.numFirstServeUnforcedErrorsByReturner + this.p1Stats.numSecondServeUnforcedErrorsByReturner;
+    return `${Math.floor((UEs / oppoTotalServes) * 100)}%`;
+  }
+
+  getP1UnforcedErrorPctOn1stServeReturn() {
+    if (this.p2Stats.numFirstServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p2Stats.numFirstServeUnforcedErrorsByReturner / this.p2Stats.numFirstServesMade) * 100)}%`;
+  }
+
+  getP2UnforcedErrorPctOn1stServeReturn() {
+    if (this.p1Stats.numFirstServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p1Stats.numFirstServeUnforcedErrorsByReturner / this.p1Stats.numFirstServesMade) * 100)}%`;
+  }
+
+  getP1UnforcedErrorPctOn2ndServeReturn() {
+    if (this.p2Stats.numSecondServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p2Stats.numSecondServeUnforcedErrorsByReturner / this.p2Stats.numSecondServesMade) * 100)}%`;
+  }
+
+  getP2UnforcedErrorPctOn2ndServeReturn() {
+    if (this.p1Stats.numSecondServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p1Stats.numSecondServeUnforcedErrorsByReturner / this.p1Stats.numSecondServesMade) * 100)}%`;
+  }
 }
 
 // The fields should be counter stats (e.g. percentages should be methods only).
@@ -83,6 +307,14 @@ export class PlayerStat {
     public numSecondServes = 0,
     public numSecondServesMade = 0,
     public numSecondServesWon = 0,
+    public numFirstServeForcingWins = 0,
+    public numSecondServeForcingWins = 0,
+    public numFirstServeForcingWinsByReturner = 0,
+    public numSecondServeForcingWinsByReturner = 0,
+    public numFirstServeUnforcedErrors = 0,
+    public numSecondServeUnforcedErrors = 0,
+    public numFirstServeUnforcedErrorsByReturner = 0,
+    public numSecondServeUnforcedErrorsByReturner = 0,
   ) {}
 
   static deserialize(json: any) {
@@ -94,7 +326,15 @@ export class PlayerStat {
       json.numFirstServesWon,
       json.numSecondServes,
       json.numSecondServesMade,
-      json.numSecondServesWon
+      json.numSecondServesWon,
+      json.numFirstServeForcingWins,
+      json.numSecondServeForcingWins,
+      json.numFirstServeForcingWinsByReturner,
+      json.numSecondServeForcingWinsByReturner,
+      json.numFirstServeUnforcedErrors,
+      json.numSecondServeUnforcedErrors,
+      json.numFirstServeUnforcedErrorsByReturner,
+      json.numSecondServeUnforcedErrorsByReturner,
     );
   }
 
