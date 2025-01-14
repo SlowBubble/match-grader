@@ -10,7 +10,7 @@ import { mod, extractYoutubeId } from "./gradebook_util";
 import { GradebookUiConfig, ColumnName } from "./gradebook_ui_config";
 import { htmlTemplate } from "./gradebook_ui_template";
 import { genFirstRow, genHeaderCol, genRallyRow } from "./gradebook_col";
-import { defaultSortState } from "./sort_state";
+// import { defaultSortState } from "./sort_state";
 import { StatCell, StatUi } from "./stat_ui";
 
 // Top-level UI to handle everything
@@ -20,7 +20,7 @@ export class GradebookUi extends HTMLElement {
   private currentUrlIdx = 0;
   // Only use this if useRevealedRallyIdx() == true.
   private revealedRallyIdx = 0;
-  private sortState = defaultSortState;
+  // private sortState = defaultSortState;
 
   private inputStartTime: Time | null = null;
   private gradebookMgr = new GradebookMgr;

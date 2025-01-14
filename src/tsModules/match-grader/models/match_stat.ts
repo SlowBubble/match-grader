@@ -135,7 +135,7 @@ export class MatchStat {
     if (oppoTotalServes === 0) {
       return '';
     }
-    const forcingWins = this.p1Stats.numFirstServeForcingWinsByReturner + this.p1Stats.numSecondServeForcingWinsByReturner;
+    const forcingWins = this.p2Stats.numFirstServeForcingWinsByReturner + this.p2Stats.numSecondServeForcingWinsByReturner;
     return `${Math.floor((forcingWins / oppoTotalServes) * 100)}%`;
   }
 
@@ -144,7 +144,7 @@ export class MatchStat {
     if (oppoTotalServes === 0) {
       return '';
     }
-    const forcingWins = this.p2Stats.numFirstServeForcingWinsByReturner + this.p2Stats.numSecondServeForcingWinsByReturner;
+    const forcingWins = this.p1Stats.numFirstServeForcingWinsByReturner + this.p1Stats.numSecondServeForcingWinsByReturner;
     return `${Math.floor((forcingWins / oppoTotalServes) * 100)}%`;
   }
 
@@ -152,28 +152,28 @@ export class MatchStat {
     if (this.p2Stats.numFirstServesMade === 0) {
       return '';
     }
-    return `${Math.floor((this.p1Stats.numFirstServeForcingWinsByReturner / this.p2Stats.numFirstServesMade) * 100)}%`;
+    return `${Math.floor((this.p2Stats.numFirstServeForcingWinsByReturner / this.p2Stats.numFirstServesMade) * 100)}%`;
   }
 
   getP2ForcingWinPctOnFirstReturn() {
     if (this.p1Stats.numFirstServesMade === 0) {
       return '';
     }
-    return `${Math.floor((this.p2Stats.numFirstServeForcingWinsByReturner / this.p1Stats.numFirstServesMade) * 100)}%`;
+    return `${Math.floor((this.p1Stats.numFirstServeForcingWinsByReturner / this.p1Stats.numFirstServesMade) * 100)}%`;
   }
 
   getP1ForcingWinPctOnSecondReturn() {
     if (this.p2Stats.numSecondServes === 0) {
       return '';
     }
-    return `${Math.floor((this.p1Stats.numSecondServeForcingWinsByReturner / this.p2Stats.numSecondServesMade) * 100)}%`;
+    return `${Math.floor((this.p2Stats.numSecondServeForcingWinsByReturner / this.p2Stats.numSecondServesMade) * 100)}%`;
   }
 
   getP2ForcingWinPctOnSecondReturn() {
     if (this.p1Stats.numSecondServes === 0) {
       return '';
     }
-    return `${Math.floor((this.p2Stats.numSecondServeForcingWinsByReturner / this.p1Stats.numSecondServesMade) * 100)}%`;
+    return `${Math.floor((this.p1Stats.numSecondServeForcingWinsByReturner / this.p1Stats.numSecondServesMade) * 100)}%`;
   }
 
   getP1UnforcedErrorPct() {
