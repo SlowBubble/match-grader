@@ -101,6 +101,12 @@ export class MatchData {
   }
 
   getRallyContexts() {
+    const contexts = this.getRallyContextsWithoutFinalRallyServer();
+    contexts[contexts.length - 1].rally.isMyServe = this.inferIsMyServe();
+    return contexts;
+  }
+
+  private getRallyContextsWithoutFinalRallyServer() {
     const contexts: RallyContext[] = [];
     let currContext = new RallyContext();
     this.rallies.forEach((rally) => {
@@ -123,7 +129,7 @@ export class MatchData {
       return true;
     }
     const finalRally = this.rallies[this.rallies.length - 1];
-    const rallyContexts = this.getRallyContexts();
+    const rallyContexts = this.getRallyContextsWithoutFinalRallyServer();
     const finalScoreContext = rallyContexts[rallyContexts.length - 1];
     const finalScore = finalScoreContext.scoreBeforeRally;
     const finalRallyIsNotAPoint = 

@@ -1,10 +1,18 @@
-
 export class StatUi extends HTMLElement {
   private root: ShadowRoot;
+
   constructor() {
     super();
     this.root = this.attachShadow({ mode: 'open' });
   }
+
+  updateHeight(height: number) {
+    const table = this.root.querySelector('table');
+    if (table) {
+      table.style.maxHeight = `${height}px`;
+    }
+  }
+
   render(rowsOfCells: StatCell[][]) {
     const table = this.createTable(rowsOfCells);
     this.root.innerHTML = tableStyle;
@@ -64,6 +72,11 @@ export function makeStatCellOpts({
 // .selected needs to be at the bottom to override other border removals
 const tableStyle = `
 <style>
+table {
+  overflow-y: auto;
+  display: block;
+}
+
 td {
   border-right: 1px solid;
   border-bottom: 1px solid;

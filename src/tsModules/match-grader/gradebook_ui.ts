@@ -28,6 +28,12 @@ export class GradebookUi extends HTMLElement {
   private sheetUi: SheetUi = new SheetUi;
   private statUi: StatUi = new StatUi;
   private banner: EphemeralBanner = new EphemeralBanner;
+  private resizeObserver: ResizeObserver;
+
+  constructor() {
+    super();
+    this.resizeObserver = new ResizeObserver(() => this.updateStatHeight());
+  }
 
   connectedCallback() {
     this.innerHTML = `Loading project data.`;
@@ -62,6 +68,7 @@ export class GradebookUi extends HTMLElement {
 
     this.youtubePlayerUi = this.querySelector('youtube-player-ui')! as YoutubePlayerUi;
     await this.updateYoutubePlayer();
+    this.resizeObserver.observe(this.youtubePlayerUi);
 
     this.renderSheet();
     // Need to render before moving cursor since the data needed to seek video time is in the sheet.
@@ -94,6 +101,10 @@ export class GradebookUi extends HTMLElement {
     }
 
     return finalProjectId;
+  }
+
+  disconnectedCallback() {
+    this.resizeObserver.disconnect();
   }
 
   handleKeydown(evt: KeyboardEvent) {
@@ -364,7 +375,6 @@ export class GradebookUi extends HTMLElement {
       const next = opposite ? idx - 1 : idx + 1 + rallyResultToIndex.size;
       const nextIdx = next % rallyResultToIndex.size;
       rally.result = rallyResultVals[nextIdx];
-      console.log(rally);
     } else if (col === ColumnName.WINNER_LAST_SHOT) {
       const ratingChange = opposite ? 1 : -1;
       rally.stat.winnerLastShotQuality = mod(
@@ -548,6 +558,8 @@ export class GradebookUi extends HTMLElement {
         inputStartTime: this.inputStartTime,
         setupInputStartTimeBtn,
         setupInputEndTimeBtn,
+        myName,
+        oppoName,
       }, this.config));
     }
 
@@ -618,6 +630,15 @@ export class GradebookUi extends HTMLElement {
         }
         return;
       }
+    }
+  }
+
+  private updateStatHeight() {
+    const player = this.querySelector('youtube-player-ui') as any;
+    const statUi = this.querySelector('stat-ui') as any;
+    if (player && statUi) {
+      const height = player.getIframeHeight();
+      statUi.updateHeight(height);
     }
   }
 }

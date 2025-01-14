@@ -37,6 +37,8 @@ export interface FirstRowData {
   inputStartTime: Time | null;
   setupInputStartTimeBtn: () => void;
   setupInputEndTimeBtn: () => void;
+  myName: string;
+  oppoName: string;
 }
 
 export function genFirstRow(data: FirstRowData, config: GradebookUiConfig): Cell[] {
@@ -47,11 +49,14 @@ export function genFirstRow(data: FirstRowData, config: GradebookUiConfig): Cell
   const endTime = data.inputStartTime !== null ?
     `<button id='input-end-time'>(Enter)</button>` : '';
 
+  const server = data.latestRallyCtx.rally.isMyServe ? data.myName :
+    `${"".padStart(data.myName.length, "_")}${data.oppoName}`;
+
   const emptyCell = new Cell('');
   return config.visibleColumns.map(col => {
     switch (col) {
       case ColumnName.SERVER:
-        return new Cell('');
+        return new Cell(server);
       case ColumnName.SET_SCORE:
         return new Cell(data.latestRallyCtx.toGameScoreStr());
       case ColumnName.GAME_SCORE:

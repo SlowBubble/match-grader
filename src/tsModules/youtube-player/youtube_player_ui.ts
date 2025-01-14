@@ -84,6 +84,11 @@ export class YoutubePlayerUi extends HTMLElement {
     return parseInt(iframe.width);
   }
 
+  getIframeHeight() {
+    const iframe = this.querySelector(`#${iframeId}`) as HTMLIFrameElement;
+    return parseInt(iframe.height);
+  }
+
   toggleVideoPlay() {
     const state = this.youtubePlayer.getPlayerState();
     if (state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING) {
