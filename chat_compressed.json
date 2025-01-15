@@ -1,15 +1,6 @@
 [
-  "Add in these fields and the logic to update them\n- numFirstServeReturns\n- numFirstServeReturnsWon\n- numSecondServeReturns\n- numSecondServeReturnsWon",
-  "Implement getFirstServePct()",
-  "impl getSecondServePct",
-  "Impl getServePct and add to the ui",
-  "display it in the ui",
-  "Display getServePct in ui",
-  "Implement getServePointsWonPct",
-  "show getServePointsWonPct in the ui",
-  "Impl getTotalNumPoints",
-  "Impl getP1PointsWon and getP2PointsWon",
-  " impl getP1WinningPct and getP2WinningPct and display in the UI",
-  "Hi",
-  "Hi"
+  "Make stat-ui scroll if it overflow the height of youtube-player-ui",
+  "This doesn't work because the height of youtube player can change dynamically",
+  "refactor to do the ResizeObserver logic in gradebook_ui to avoid doing document.querySelector",
+  "Don't create the new class GradebookUi, do it in the existing class in gradebook_ui.ts"
 ]
