@@ -3,27 +3,33 @@
 
 ## Doing
 
+- P1 stats
+  - % of points that have forcing opportunities (can do 6 other columns with serve and ret)
+    - UE are the fraction of this where you lose
+    - % of Forcing green are the fraction of this where you win
+  
+
+
 ## Done
 
-- P1 stats
-  - % winning pts that are green
-    - slice by first vs second and serve vs return
-  - % losing pts that are free pts
-    - slice by first vs second and serve vs return
+Fix stat styling
 
 
 ## P1
+
+- Fix stats table height (make it shorter than the video without having to press f twice)
+
+- Sorting
+  - Sort by descending start time as the last dimension (default when no other dim is specified)
+  - When a column header is pressed, sort and then move to the very bottom for easy replaying purposes.
 
 ### Create a video with the score
 
 - Press x to export.
 - M1: Will ask for the video file
 
-## P1.5
-
-- Sorting 
-
 ### Design stats impl
+
 - Slice stats by current game and current set and overall???
   - Can then use it for things like break pt #2.
 
@@ -40,6 +46,7 @@
 
 ## P2
 
+- Store the sort state in url for easier sharing
 - Consider making upDownArrowJumpsToStartTime = true always (remove impl that uses it).
 - Design a better pub-sub for when video time passes a key point.
 - Think of other features for watch mode

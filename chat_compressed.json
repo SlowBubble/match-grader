@@ -1,6 +1,3 @@
 [
-  "Make stat-ui scroll if it overflow the height of youtube-player-ui",
-  "This doesn't work because the height of youtube player can change dynamically",
-  "refactor to do the ResizeObserver logic in gradebook_ui to avoid doing document.querySelector",
-  "Don't create the new class GradebookUi, do it in the existing class in gradebook_ui.ts"
+  "Implement bold"
 ]

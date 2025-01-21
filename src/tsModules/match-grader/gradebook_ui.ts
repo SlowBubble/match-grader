@@ -11,7 +11,7 @@ import { GradebookUiConfig, ColumnName } from "./gradebook_ui_config";
 import { htmlTemplate } from "./gradebook_ui_template";
 import { genFirstRow, genHeaderCol, genRallyRow } from "./gradebook_col";
 // import { defaultSortState } from "./sort_state";
-import { StatCell, StatUi } from "./stat_ui";
+import { makeStatCellOpts, StatCell, StatUi } from "./stat_ui";
 
 // Top-level UI to handle everything
 export class GradebookUi extends HTMLElement {
@@ -71,6 +71,8 @@ export class GradebookUi extends HTMLElement {
     this.resizeObserver.observe(this.youtubePlayerUi);
 
     this.renderSheet();
+    this.updateStatHeight();
+
     // Need to render before moving cursor since the data needed to seek video time is in the sheet.
     if (this.config.startFromBeginning) {
       this.moveCursorToFirstRally();
@@ -496,20 +498,22 @@ export class GradebookUi extends HTMLElement {
     rows.push([new StatCell(''), new StatCell(project.matchData.myName), new StatCell(project.matchData.oppoName)]);
 
     const stat = this.getCurrRallyContext().matchStatBeforeRally;
-    rows.push([new StatCell('🟢'), new StatCell(stat.getP1WinningPct()), new StatCell(stat.getP2WinningPct())]);
+    const bold = makeStatCellOpts({bold: true});
+    rows.push([new StatCell('🟢(wins)', bold), new StatCell(stat.getP1WinningPct(), bold), new StatCell(stat.getP2WinningPct(), bold)]);
     rows.push([new StatCell('Serve 🟢'), new StatCell(stat.p1Stats.getServePointsWonPct()), new StatCell(stat.p2Stats.getServePointsWonPct())]);
     rows.push([new StatCell('Serve #1 🟢'), new StatCell(stat.p1Stats.getFirstServePointsWonPct()), new StatCell(stat.p2Stats.getFirstServePointsWonPct())]);
     rows.push([new StatCell('Serve #2 🟢'), new StatCell(stat.p1Stats.getSecondServePointsWonPct()), new StatCell(stat.p2Stats.getSecondServePointsWonPct())]);
-    rows.push([new StatCell('Serve #1'), new StatCell(stat.p1Stats.getFirstServePct()), new StatCell(stat.p2Stats.getFirstServePct())]);
+    rows.push([new StatCell('Serve #1', bold), new StatCell(stat.p1Stats.getFirstServePct(), bold), new StatCell(stat.p2Stats.getFirstServePct(), bold)]);
     rows.push([new StatCell('Serve #2'), new StatCell(stat.p1Stats.getSecondServePct()), new StatCell(stat.p2Stats.getSecondServePct())]);
-    rows.push([new StatCell('Forcing💪🟢'), new StatCell(stat.getP1ForcingWinPct()), new StatCell(stat.getP2ForcingWinPct())]);
+    // rows.push([new StatCell('💪(forcing %)', bold), new StatCell(stat.getP1ForcingWinPct()), new StatCell(stat.getP2ForcingWinPct())]);
+    rows.push([new StatCell('💪🟢(forcing W)', bold), new StatCell(stat.getP1ForcingWinPct(), bold), new StatCell(stat.getP2ForcingWinPct(), bold)]);
     rows.push([new StatCell(`Serve 💪🟢`), new StatCell(stat.getP1ForcingWinPctOnServe()), new StatCell(stat.getP2ForcingWinPctOnServe())]);
     rows.push([new StatCell(`Serv 1 💪🟢`), new StatCell(stat.getP1ForcingWinPctOnFirstServe()), new StatCell(stat.getP2ForcingWinPctOnFirstServe())]);
     rows.push([new StatCell(`Serv 2 💪🟢`), new StatCell(stat.getP1ForcingWinPctOnSecondServe()), new StatCell(stat.getP2ForcingWinPctOnSecondServe())]);
     rows.push([new StatCell(`Return 💪🟢`), new StatCell(stat.getP1ForcingWinPctOnReturn()), new StatCell(stat.getP2ForcingWinPctOnReturn())]);
     rows.push([new StatCell(`Ret 1 💪🟢`), new StatCell(stat.getP1ForcingWinPctOnFirstReturn()), new StatCell(stat.getP2ForcingWinPctOnFirstReturn())]);
     rows.push([new StatCell(`Ret 2 💪🟢`), new StatCell(stat.getP1ForcingWinPctOnSecondReturn()), new StatCell(stat.getP2ForcingWinPctOnSecondReturn())]);
-    rows.push([new StatCell('UError 🔴'), new StatCell(stat.getP1UnforcedErrorPct()), new StatCell(stat.getP2UnforcedErrorPct())]);
+    rows.push([new StatCell('UError 🔴', bold), new StatCell(stat.getP1UnforcedErrorPct(), bold), new StatCell(stat.getP2UnforcedErrorPct(), bold)]);
     rows.push([new StatCell('Serve UE 🔴'), new StatCell(stat.getP1UnforcedErrorPctOnServe()), new StatCell(stat.getP2UnforcedErrorPctOnServe())]);
     rows.push([new StatCell('Serv 1 UE 🔴'), new StatCell(stat.getP1UnforcedErrorPctOnFirstServe()), new StatCell(stat.getP2UnforcedErrorPctOnFirstServe())]);
     rows.push([new StatCell('Serv 2 UE 🔴'), new StatCell(stat.getP1UnforcedErrorPctOnSecondServe()), new StatCell(stat.getP2UnforcedErrorPctOnSecondServe())]);

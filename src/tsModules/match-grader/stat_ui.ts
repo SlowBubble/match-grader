@@ -33,6 +33,9 @@ export class StatUi extends HTMLElement {
         if (cell.opts.alignCenter) {
           cellHtml.classList.add('align-center');
         }
+        if (cell.opts.bold) {
+          cellHtml.classList.add('bold');
+        }
         rowHtml.appendChild(cellHtml);
       });
   
@@ -56,16 +59,19 @@ export class StatCellOpts {
   constructor(
     public alignRight = false,
     public alignCenter = false,
+    public bold = false,
   ) {}
 }
 
 export function makeStatCellOpts({
   alignRight = false,
   alignCenter = false,
+  bold = false,
 }: any = {}) {
   return new StatCellOpts(
     alignRight,
     alignCenter,
+    bold,
   );
 }
 
@@ -89,6 +95,10 @@ td {
 
 .align-center {
   text-align: center;
+}
+
+.bold {
+  font-weight: bold;
 }
 
 </style>
