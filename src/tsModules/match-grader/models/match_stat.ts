@@ -292,7 +292,6 @@ export class MatchStat {
     if (this.p1Stats.numFirstServesMade === 0) {
       return '';
     }
-    console.log(this.p1Stats.numFirstServeForcingChances, this.p1Stats.numFirstServesMade);
     return `${Math.floor((this.p1Stats.numFirstServeForcingChances / this.p1Stats.numFirstServesMade) * 100)}%`;
   }
   getP1ForcingChancePctOn2ndServe() {
@@ -329,8 +328,6 @@ export class MatchStat {
     if (this.p1Stats.numFirstServesMade === 0) {
       return '';
     }
-    console.log('getP2ForcingChancePctOn1stServeReturn', this.p1Stats.numFirstServeForcingChancesForReturner, this.p1Stats.numFirstServesMade);
-
     return `${Math.floor((this.p1Stats.numFirstServeForcingChancesForReturner / this.p1Stats.numFirstServesMade) * 100)}%`;
   }
   getP2ForcingChancePctOn2ndServeReturn() {
