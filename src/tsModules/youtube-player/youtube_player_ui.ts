@@ -37,14 +37,7 @@ export class YoutubePlayerUi extends HTMLElement {
 
   // Must call this to load the actual video.
   async initYoutubePlayer(videoId: string, autoplay = false) {
-    const {width, height} = getWindowSize();
-    const minTableHeight = 150;
-    let maxPlayerHeight = height - minTableHeight;
-    let maxPlayerWidth = maxPlayerHeight * 16 / 9;
-    if (maxPlayerHeight * 16 / 9 > width) {
-      maxPlayerWidth = width;
-      maxPlayerHeight = maxPlayerWidth * 9 / 16;
-    }
+    const {maxPlayerWidth, maxPlayerHeight} = this.getMaxPlayerDimensions();
 
     // Avoid showing the thumbnail (which may contain the spoiler)
     // rel=0 tries to remove related video (not working for pause)
@@ -69,6 +62,18 @@ export class YoutubePlayerUi extends HTMLElement {
         this.setIframeDims(maxPlayerWidth);
       }, 900);
     }
+  }
+
+  private getMaxPlayerDimensions() {
+    const {width, height} = getWindowSize();
+    const minTableHeight = 150;
+    let maxPlayerHeight = height - minTableHeight;
+    let maxPlayerWidth = maxPlayerHeight * 16 / 9;
+    if (maxPlayerHeight * 16 / 9 > width) {
+      maxPlayerWidth = width;
+      maxPlayerHeight = maxPlayerWidth * 9 / 16;
+    }
+    return {maxPlayerWidth, maxPlayerHeight};
   }
 
   onEnd(callback: () => void) {
@@ -113,6 +118,22 @@ export class YoutubePlayerUi extends HTMLElement {
   }
   resetPlaybackRate() {
     this.youtubePlayer.setPlaybackRate(1);
+  }
+
+  public isMaxDimensions(): boolean {
+    const {maxPlayerWidth} = this.getMaxPlayerDimensions();
+    const currentWidth = this.getIframeWidth();
+    const bufferWidth = 20;
+    return currentWidth >= maxPlayerWidth - bufferWidth;
+  }
+
+  public togglePlayerDimensions() {
+    const {maxPlayerWidth} = this.getMaxPlayerDimensions();
+    if (this.isMaxDimensions()) {
+      this.setIframeDims(maxPlayerWidth / 4);
+    } else {
+      this.setIframeDims(maxPlayerWidth);
+    }
   }
 }
 

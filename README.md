@@ -3,19 +3,19 @@
 
 ## Doing
 
-- % of points that have forcing chances (can do 6 other columns with serve and ret)
-  - Forcing chances are where your opponent shot quality is <= 2.
-  - For server, the total will include double fault as well.
-  - For returner, we will not count double fault of the server.
+- Add a click handler to each stat entry to show all the rallies that the stat is describing
+  - Instead of storing the counts, I'll need to store the rally start time.
+    - This will make debugging way easier.
 
 ## Done
 
-Fix stat styling
-
+- Fix stats table height (make it shorter than the video without having to press f twice)
+- Fix mouse click on table
+- Make the video not sticky when not in full screen mode
 
 ## P1
 
-- Fix stats table height (make it shorter than the video without having to press f twice)
+- Add a stat column for deuce and ad side breakdown
 
 - Sorting
   - Sort by descending start time as the last dimension (default when no other dim is specified)

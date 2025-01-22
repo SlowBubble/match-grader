@@ -1,7 +1,6 @@
 export const htmlTemplate = `
       <style>
       #youtube-container {
-        position: sticky;
         top: 0;
         display: flex;
         align-items: flex-start;

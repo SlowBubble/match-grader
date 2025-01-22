@@ -56,17 +56,16 @@ export class GradebookUi extends HTMLElement {
     this.banner = this.querySelector('ephemeral-banner') as EphemeralBanner;
     this.statUi = this.querySelector('stat-ui')! as StatUi;
     this.sheetUi = this.querySelector('sheet-ui')! as SheetUi;
-    // TODO see if we can move part of this inside SheetUi (replace setRowIdxAndVideo with moveVideoToCurrentRally)
     this.sheetUi.onCellClick((cellLoc: CellLoc) => {
-      if (cellLoc.rowIdx < 2) {
-        return;
-      }
-      this.setRowIdxAndVideo(cellLoc.rowIdx - 2);
+      this.setRowIdxAndVideo(cellLoc.rowIdx);
       this.sheetUi.setColIdx(cellLoc.colIdx);
       this.renderSheet();
     });
 
     this.youtubePlayerUi = this.querySelector('youtube-player-ui')! as YoutubePlayerUi;
+    const youtubeContainer = this.querySelector('#youtube-container') as HTMLElement;
+    youtubeContainer.style.position = 'sticky';
+
     await this.updateYoutubePlayer();
     this.resizeObserver.observe(this.youtubePlayerUi);
 
@@ -138,9 +137,14 @@ export class GradebookUi extends HTMLElement {
     } else if (matchKey(evt, 'h')) {
       this.getVideoPlayerUi().move(-5);
     } else if (matchKey(evt, 'f')) {
-      const width = this.getVideoPlayerUi().getIframeWidth();
-      let wantWidth = width < 1000 ? width * 4 : width / 4;
-      this.getVideoPlayerUi().setIframeDims(wantWidth);
+      this.getVideoPlayerUi().togglePlayerDimensions();
+      const container = this.querySelector('#youtube-container') as HTMLElement;
+      if (this.getVideoPlayerUi().isMaxDimensions()) {
+        container.style.position = 'sticky';
+      } else {
+        container.style.position = '';
+        console.log(container.style.position);
+      }
     } else if (matchKey(evt, 'cmd+s')) {
       evt.preventDefault();
       this.banner.inProgress('Saving');
