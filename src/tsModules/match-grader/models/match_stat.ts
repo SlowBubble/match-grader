@@ -287,6 +287,76 @@ export class MatchStat {
     }
     return `${Math.floor((this.p1Stats.numSecondServeUnforcedErrorsByReturner / this.p1Stats.numSecondServesMade) * 100)}%`;
   }
+
+  getP1ForcingChancePctOn1stServe() {
+    if (this.p1Stats.numFirstServesMade === 0) {
+      return '';
+    }
+    console.log(this.p1Stats.numFirstServeForcingChances, this.p1Stats.numFirstServesMade);
+    return `${Math.floor((this.p1Stats.numFirstServeForcingChances / this.p1Stats.numFirstServesMade) * 100)}%`;
+  }
+  getP1ForcingChancePctOn2ndServe() {
+    if (this.p1Stats.numSecondServes === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p1Stats.numSecondServeForcingChances / this.p1Stats.numSecondServes) * 100)}%`;
+  }
+  getP1ForcingChancePctOn1stServeReturn() {
+    if (this.p2Stats.numFirstServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p2Stats.numFirstServeForcingChancesForReturner / this.p2Stats.numFirstServesMade) * 100)}%`;
+  }
+  getP1ForcingChancePctOn2ndServeReturn() {
+    if (this.p2Stats.numSecondServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p2Stats.numSecondServeForcingChancesForReturner / this.p2Stats.numSecondServesMade) * 100)}%`;
+  }
+  getP2ForcingChancePctOn1stServe() {
+    if (this.p2Stats.numFirstServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p2Stats.numFirstServeForcingChances / this.p2Stats.numFirstServesMade) * 100)}%`;
+  }
+  getP2ForcingChancePctOn2ndServe() {
+    if (this.p2Stats.numSecondServes === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p2Stats.numSecondServeForcingChances / this.p2Stats.numSecondServes) * 100)}%`;
+  }
+  getP2ForcingChancePctOn1stServeReturn() {
+    if (this.p1Stats.numFirstServesMade === 0) {
+      return '';
+    }
+    console.log('getP2ForcingChancePctOn1stServeReturn', this.p1Stats.numFirstServeForcingChancesForReturner, this.p1Stats.numFirstServesMade);
+
+    return `${Math.floor((this.p1Stats.numFirstServeForcingChancesForReturner / this.p1Stats.numFirstServesMade) * 100)}%`;
+  }
+  getP2ForcingChancePctOn2ndServeReturn() {
+    if (this.p1Stats.numSecondServesMade === 0) {
+      return '';
+    }
+    return `${Math.floor((this.p1Stats.numSecondServeForcingChancesForReturner / this.p1Stats.numSecondServesMade) * 100)}%`;
+  }
+  getP1ForcingChancePct(){
+    const totalPoints = this.p1Stats.numFirstServesMade + this.p1Stats.numSecondServes + this.p2Stats.numFirstServesMade + this.p2Stats.numSecondServesMade;
+    if (totalPoints === 0) {
+      return '';
+    }
+    const serverForcingChances = this.p1Stats.numFirstServeForcingChances + this.p1Stats.numSecondServeForcingChances;
+    const returnerForcingChances = this.p2Stats.numFirstServeForcingChancesForReturner + this.p2Stats.numSecondServeForcingChancesForReturner;
+    return `${Math.floor(((serverForcingChances + returnerForcingChances) / totalPoints) * 100)}%`;
+  }
+  getP2ForcingChancePct(){
+    const totalPoints = this.p1Stats.numFirstServesMade + this.p1Stats.numSecondServesMade + this.p2Stats.numFirstServesMade + this.p2Stats.numSecondServes;
+    if (totalPoints === 0) {
+      return '';
+    }
+    const serverForcingChances = this.p2Stats.numFirstServeForcingChances + this.p2Stats.numSecondServeForcingChances;
+    const returnerForcingChances = this.p1Stats.numFirstServeForcingChancesForReturner + this.p1Stats.numSecondServeForcingChancesForReturner;
+    return `${Math.floor(((serverForcingChances + returnerForcingChances) / totalPoints) * 100)}%`;
+  }
 }
 
 // The fields should be counter stats (e.g. percentages should be methods only).
@@ -315,6 +385,10 @@ export class PlayerStat {
     public numSecondServeUnforcedErrors = 0,
     public numFirstServeUnforcedErrorsByReturner = 0,
     public numSecondServeUnforcedErrorsByReturner = 0,
+    public numFirstServeForcingChances = 0,
+    public numSecondServeForcingChances = 0,
+    public numFirstServeForcingChancesForReturner = 0,
+    public numSecondServeForcingChancesForReturner = 0,
   ) {}
 
   static deserialize(json: any) {
@@ -335,6 +409,10 @@ export class PlayerStat {
       json.numSecondServeUnforcedErrors,
       json.numFirstServeUnforcedErrorsByReturner,
       json.numSecondServeUnforcedErrorsByReturner,
+      json.numFirstServeForcingChances,
+      json.numSecondServeForcingChances,
+      json.numFirstServeForcingChancesForReturner,
+      json.numSecondServeForcingChancesForReturner,
     );
   }
 

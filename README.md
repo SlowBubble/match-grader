@@ -3,12 +3,10 @@
 
 ## Doing
 
-- P1 stats
-  - % of points that have forcing opportunities (can do 6 other columns with serve and ret)
-    - UE are the fraction of this where you lose
-    - % of Forcing green are the fraction of this where you win
-  
-
+- % of points that have forcing chances (can do 6 other columns with serve and ret)
+  - Forcing chances are where your opponent shot quality is <= 2.
+  - For server, the total will include double fault as well.
+  - For returner, we will not count double fault of the server.
 
 ## Done
 

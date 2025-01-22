@@ -1,3 +1,14 @@
 [
-  "Implement bold"
+  "Implement bold",
+  "Implement numFirstServeForcingChancesForReturner and numSecondServeForcingChancesForReturner:\n- Forcing chances are where your opponent shot quality is <= 2.",
+  "Implement numFirstServeForcingChancesForReturner and numSecondServeForcingChancesForReturner:\n\nForcing chances are where your opponent shot quality is < 3 and > 0.",
+  "Implement numFirstServeForcingChancesForReturner and numSecondServeForcingChancesForReturner:\n\nForcing chances are where your opponent shot quality is < 3 and > 0.",
+  "Implement numFirstServeForcingChancesForReturner and numSecondServeForcingChancesForReturner:\n\nForcing chances are where your opponent shot quality is < 3 and > 0.",
+  "Implement numFirstServeForcingChancesForReturner and numSecondServeForcingChancesForReturner:\n\nForcing chances are where your opponent shot quality is < 3 and > 0.",
+  "Implement numFirstServeForcingChancesForReturner and numSecondServeForcingChancesForReturner:\n\nForcing chances are where your opponent shot quality is < 3 and > 0.",
+  "Implement numFirstServeForcingChancesForReturner and numSecondServeForcingChancesForReturner:\n\nForcing chances are where your opponent shot quality is < 3 and > 0.",
+  "Implement numFirstServeForcingChancesForReturner and numSecondServeForcingChancesForReturner:\n\nForcing chances are where your opponent shot quality is < 3 and > 0.",
+  "Implement getP1ForcingChancePctOnFirstServe",
+  "implement getP1ForcingChancePctOnSecondServe",
+  "implement getP1ForcingChancePctOn1stServeReturn"
 ]

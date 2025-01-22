@@ -212,7 +212,6 @@ export function annotateMatchStat(rallyContexts: RallyContext[]) {
   const stat = new MatchStat();
   rallyContexts.forEach((rallyContext) => {
     rallyContext.matchStatBeforeRally = stat.clone();
-
     // Check game points and set points using direct score comparison
     if (isSubjectGamePoint(rallyContext.scoreBeforeRally.p1, rallyContext.scoreBeforeRally.p2)) {
       stat.p1Stats.numGamePts++;
@@ -224,6 +223,44 @@ export function annotateMatchStat(rallyContexts: RallyContext[]) {
       stat.p2Stats.numGamePts++;
       if (isSubjectSetPoint(rallyContext.scoreBeforeRally.p2, rallyContext.scoreBeforeRally.p1)) {
         stat.p2Stats.numSetPts++;
+      }
+    }
+
+    const p1Won = rallyContext.winnerIsMe();
+    const p2Won = rallyContext.winnerIsOppo();
+    const isSecondServe = rallyContext.isSecondServe();
+    const p1ShotQuality = p1Won ? rallyContext.rally.stat.winnerLastShotQuality : rallyContext.rally.stat.loserPreviousShotQuality;
+    const p2ShotQuality = p2Won ? rallyContext.rally.stat.winnerLastShotQuality : rallyContext.rally.stat.loserPreviousShotQuality;
+    const p1HasWeakShot = (p1ShotQuality > 0 && p1ShotQuality < 3) || (p2ShotQuality > 3 && p1ShotQuality <= 3);
+    const p2HasWeakShot = (p2ShotQuality > 0 && p2ShotQuality < 3) || (p1ShotQuality > 3 && p2ShotQuality <= 3);
+    if (p2HasWeakShot) {
+      if (rallyContext.rally.isMyServe) {
+        if (isSecondServe) {
+          stat.p1Stats.numSecondServeForcingChances++;
+        } else {
+          stat.p1Stats.numFirstServeForcingChances++;
+        }
+      } else {
+        if (isSecondServe) {
+          stat.p2Stats.numSecondServeForcingChancesForReturner++;
+        } else {
+          stat.p2Stats.numFirstServeForcingChancesForReturner++;
+        }
+      }
+    }
+    if (p1HasWeakShot) {
+      if (rallyContext.rally.isMyServe) {
+        if (isSecondServe) {
+          stat.p1Stats.numSecondServeForcingChancesForReturner++;
+        } else {
+          stat.p1Stats.numFirstServeForcingChancesForReturner++;
+        }
+      } else {
+        if (isSecondServe) {
+          stat.p2Stats.numSecondServeForcingChances++;
+        } else {
+          stat.p2Stats.numFirstServeForcingChances++;
+        }
       }
     }
 
