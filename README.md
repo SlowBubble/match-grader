@@ -3,9 +3,7 @@
 
 ## Doing
 
-- Add a click handler to each stat entry to show all the rallies that the stat is describing
-  - Instead of storing the counts, I'll need to store the rally start time.
-    - This will make debugging way easier.
+- Smart replayer
 
 ## Done
 
@@ -20,6 +18,19 @@
 - Sorting
   - Sort by descending start time as the last dimension (default when no other dim is specified)
   - When a column header is pressed, sort and then move to the very bottom for easy replaying purposes.
+
+### Design sort and filter
+
+- E2E
+  - Encapsulate them together in select state
+  - Do this selection before passing it to the table and special replayer
+  - Just worry about watch mode; when we filter using stats, we start from the first point, hiding other points
+- How does replaying works if the select state is not the default?
+  - The special replayer checks every 2 seconds whether an end point is passed and move to the next start poing.
+  - Give a buffer of 4 seconds before automatically going to the next point
+  - Need to display the first vs second serve since we will exclude faults when replaying
+  - No need to hide spoilers if non-default select state
+
 
 ### Create a video with the score
 

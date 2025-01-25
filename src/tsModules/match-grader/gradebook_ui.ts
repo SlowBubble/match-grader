@@ -12,6 +12,7 @@ import { htmlTemplate } from "./gradebook_ui_template";
 import { genFirstRow, genHeaderCol, genRallyRow } from "./gradebook_col";
 // import { defaultSortState } from "./sort_state";
 import { makeStatCellOpts, StatCell, StatUi } from "./stat_ui";
+// import { FilterState } from "./filter_state";
 
 // Top-level UI to handle everything
 export class GradebookUi extends HTMLElement {
@@ -21,6 +22,7 @@ export class GradebookUi extends HTMLElement {
   // Only use this if useRevealedRallyIdx() == true.
   private revealedRallyIdx = 0;
   // private sortState = defaultSortState;
+  // private filterState = new FilterState;
 
   private inputStartTime: Time | null = null;
   private gradebookMgr = new GradebookMgr;
