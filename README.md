@@ -3,7 +3,35 @@
 
 ## Doing
 
-- Smart replayer
+### Design video gen
+
+- X: Record and save as webm file
+  - X: Intake the footage file on record
+  - X: Add score
+  - X: Add cuts
+- Fix score
+  - Add transition
+- Story telling: Think about when to add pauses in between points
+  - plot line
+  - factoids about the point or the last few points
+  - slow-mo replay
+  - pre-made audio with trite advice
+    - That is outrageous
+    - He has got to hit with more depth
+    - He has got to have fewer unforced errors
+  - 
+- Generate prompt to get podcast
+  - I will need to manually cut things to avoid it being too long
+- Intake podcast files and other footages
+- P2: Add stats during the podcast
+- P3: Add highlights during the podcast
+- P3: Add interesting plot lines (add in slow mo to let user digest it)
+  - >3 consecutive pts: # consecutive pts
+  - Double fault: # second serves | # double faults | %
+  - Unforced error: # unforced error | # forcing wins
+  - Forced error: # forced error | 1st serve | 2nd serve | 1st serve return
+  - Game pt: game pt chances | game pt converted
+- P3: See if I can split up the podcast and put it in later breaks
 
 ## Done
 
@@ -12,6 +40,8 @@
 - Make the video not sticky when not in full screen mode
 
 ## P1
+
+- Smart replayer
 
 - Add a stat column for deuce and ad side breakdown
 

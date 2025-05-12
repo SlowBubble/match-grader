@@ -713,4 +713,4 @@ export declare namespace YT {
   }
 }
 
-customElements.define('gradebook-ui', GradebookUi)
+customElements.define('gradebook-ui', GradebookUi);

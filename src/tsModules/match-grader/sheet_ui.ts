@@ -173,6 +173,7 @@ table, th, td {
 
 .selected {
   border: 4px solid;
+  background-color: #fed;
 }
 </style>
 `;
