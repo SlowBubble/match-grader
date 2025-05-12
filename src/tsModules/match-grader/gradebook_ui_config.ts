@@ -4,7 +4,7 @@ export class GradebookUiConfig {
     // TODO consider making these non-optional defaults.
     public upDownArrowJumpsToStartTime: boolean = true,
     public moveCursorUpBasedOnVideoTime: boolean = true,
-    public useSmartReplayer: boolean = true,
+    public smartReplayBufferMs = 3000,
 
     public leftRightArrowMovesVideo: boolean = false,
     public startFromBeginning = false,

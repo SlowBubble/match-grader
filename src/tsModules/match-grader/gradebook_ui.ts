@@ -12,7 +12,7 @@ import { htmlTemplate } from "./gradebook_ui_template";
 import { genFirstRow, genHeaderCol, genRallyRow } from "./gradebook_col";
 // import { defaultSortState } from "./sort_state";
 import { makeStatCellOpts, StatCell, StatUi } from "./stat_ui";
-// import { FilterState } from "./filter_state";
+import { FilterState } from "./filter_state";
 
 // Top-level UI to handle everything
 export class GradebookUi extends HTMLElement {
@@ -22,7 +22,7 @@ export class GradebookUi extends HTMLElement {
   // Only use this if useRevealedRallyIdx() == true.
   private revealedRallyIdx = 0;
   // private sortState = defaultSortState;
-  // private filterState = new FilterState;
+  private filterState = new FilterState;
 
   private inputStartTime: Time | null = null;
   private gradebookMgr = new GradebookMgr;
@@ -102,6 +102,31 @@ export class GradebookUi extends HTMLElement {
         }
       }, 1000);
     }
+
+    // // TODO implement this
+    // if (this.config.smartReplayBufferMs >= 0) {
+    //   window.setInterval(() => {
+    //     if (this.youtubePlayerUi.youtubePlayer.getPlayerState() !== YT.PlayerState.PLAYING) {
+    //       return;
+    //     }
+    //     if (this.filterState.isDefaultState()) {
+    //       return;
+    //     }
+    //     const rally = this.getCurrRally();
+    //     if (!rally) {
+    //       return;
+    //     }
+    //     const idx = this.filterState.rallyStartTimes.findIndex(time => time.equals(rally.startTime));
+    //     if (idx === -1 || idx + 1 >= this.filterState.rallyStartTimes.length) {
+    //       return;
+    //     }
+    //     // const nextStartTime = this.filterState.rallyStartTimes[idx + 1];
+    //     // const bufferMs = this.config.smartReplayBufferMs;
+    //     // if (rally.endTime.ms + bufferMs < this.getCurrTime().ms) {
+          
+    //     // }
+    //   }, 1000);
+    // }
 
     return finalProjectId;
   }
@@ -545,6 +570,16 @@ export class GradebookUi extends HTMLElement {
     return rows;
   }
 
+  private getAllowedRallyContexts() {
+    const rallyContexts = this.gradebookMgr.project.matchData.getRallyContexts();
+    if (this.filterState.isDefaultState()) {
+      return rallyContexts;
+    }
+    const allowedStartTimeStrs = new Set();
+    this.filterState.rallyStartTimes.forEach(time => allowedStartTimeStrs.add(time.toString()));
+    return rallyContexts.filter(rallyCtx => allowedStartTimeStrs.has(rallyCtx.rally.startTime.toString()));
+  }
+
   private genSheet(revealSpoiler = false): Cell[][] {
     const project = this.gradebookMgr.project;
     const rows = [];
@@ -553,7 +588,7 @@ export class GradebookUi extends HTMLElement {
 
     const myName = project.matchData.myName;
     const oppoName = project.matchData.oppoName;
-    const rallyContexts = this.gradebookMgr.project.matchData.getRallyContexts();
+    const rallyContexts = this.getAllowedRallyContexts();
 
     const setupInputStartTimeBtn = () => {
       const btn = this.querySelector('#input-start-time') as HTMLButtonElement;
