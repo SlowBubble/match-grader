@@ -34,7 +34,34 @@ export class Score {
     }
     return '__-Ad';
   }
-
+  getP1PointsStr() {
+    let p1TennisPt = ptToTennisPt.get(this.p1.points);
+    let p2TennisPt = ptToTennisPt.get(this.p2.points);
+    if (p1TennisPt !== undefined && p2TennisPt !== undefined) {
+      return p1TennisPt;
+    }
+    if (this.p1.points === this.p2.points) {
+      return `40`;
+    }
+    if (this.p1.points > this.p2.points) {
+      return 'Ad';
+    }
+    return '__';
+  }
+  getP2PointsStr() {
+    let p1TennisPt = ptToTennisPt.get(this.p1.points);
+    let p2TennisPt = ptToTennisPt.get(this.p2.points);
+    if (p1TennisPt !== undefined && p2TennisPt !== undefined) {
+      return p2TennisPt;
+    }
+    if (this.p1.points === this.p2.points) {
+      return `40`;
+    }
+    if (this.p1.points > this.p2.points) {
+      return '__';
+    }
+    return 'Ad';
+  }
 }
 
 const ptToTennisPt = new Map([

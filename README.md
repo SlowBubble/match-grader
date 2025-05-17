@@ -9,12 +9,77 @@
   - X: Intake the footage file on record
   - X: Add score
   - X: Add cuts
-- Fix score
-  - Add transition
+  - X: Use * in the points for second serve
+  - X: Coloring based on score
+- Add an option for automatic score swapping?
+
+- Timing
+  - right after the point ends: rightPaddingMs
+  - before the next point starts: leftPaddingMs
+- Timing for story telling 
+  - leftPadding for set pts, break pts, duece, 40-30 and 0-0
+  - Zoom in at the start of the set
+  - Zoom out for game points
+  - Zoom in when exiting game points
+
+- Triggers for climax:
+  - Set point
+  - Break point
+  - Deuce
+- Trigger for frustrating situations:
+  - Double fault #2, 4, ...: # second serves | # double faults | %
+  - Unforced error #2, 4, ...: # unforced error | # forcing wins
+  - Getting broken
+  - Reaching deuce after failing to convert game points
+  - Finishing a long point
+  - Long service game >= 5, 8, ... minutes
+- Trigger for positive situations:
+  - winning consecutive pts #3, 5, ...: # consecutive pts
+  - breaking a losing streak of >= 3 pts
+  - Forced error #3, 5, ...: # forced error | 1st serve | 2nd serve | 1st serve return
+  - Saving break point #2, 4, ...
+  - Converting break point #2, 3, ...
+  - Converting game point #2, 4
+
+- Triggers for predictive narrative:
+  - After reaching deuce
+    - > 3 "deuce":
+      - How many games reach deuce as a server
+      - Num of deuce games won
+  - After reaching break point
+    - > 1 break point:
+      - Num of "deuce" as a returner
+      - Num of break points
+      - Num of games with break points
+      - Num of breaks
+- Triggers for exlamative narrative:
+  - After a long point
+    - point duration
+    - > 3 long points:
+      - Num of long points as a server
+      - Num of long points won
+  - After reaching deuce #2
+    - The game duration
+    - > 5 games:
+      - Average game length
+  - After reaching deuce
+    - The game's history
+  - After reaching break point
+    - first break point
+  - After reaching game point
+    - > 3 game points:
+      - Number of game points
+      - Number of games with game points
+  - After winning 4 of last 5 points:
+    - Show ???
+  - After 2 out of last 3 points being short:
+    - ???
+  - After 2 out of last 3 points being unforced errors
+    - ???
+  
 - Story telling: Think about when to add pauses in between points
   - plot line
-  - factoids about the point or the last few points
-  - slow-mo replay
+  - I should mark replay-worthy shots explicitly by picking the starting point.
   - pre-made audio with trite advice
     - That is outrageous
     - He has got to hit with more depth
@@ -26,10 +91,6 @@
 - P2: Add stats during the podcast
 - P3: Add highlights during the podcast
 - P3: Add interesting plot lines (add in slow mo to let user digest it)
-  - >3 consecutive pts: # consecutive pts
-  - Double fault: # second serves | # double faults | %
-  - Unforced error: # unforced error | # forcing wins
-  - Forced error: # forced error | 1st serve | 2nd serve | 1st serve return
   - Game pt: game pt chances | game pt converted
 - P3: See if I can split up the podcast and put it in later breaks
 
