@@ -3,6 +3,13 @@
 
 ## Doing
 
+- Design intro
+- Design outro
+
+## Done
+
+- Display game history
+
 ### Design video gen
 
 - X: Record and save as webm file
@@ -94,11 +101,6 @@
   - Game pt: game pt chances | game pt converted
 - P3: See if I can split up the podcast and put it in later breaks
 
-## Done
-
-- Fix stats table height (make it shorter than the video without having to press f twice)
-- Fix mouse click on table
-- Make the video not sticky when not in full screen mode
 
 ## P1
 
