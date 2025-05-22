@@ -1,7 +1,8 @@
 import { matchKey } from "../key-match/key_match";
 import { GradebookMgr } from "./gradebook_mgr";
-import { ScoreBoard } from "./score-board/ScoreBoard";
+import { ScoreBoard, ScoreboardType } from "./score-board/ScoreBoard";
 
+const audioPlaybackRate = 1.1;
 export class OutputUi extends HTMLElement {
   private gradebookMgr = new GradebookMgr;
   private scoreBoard = new ScoreBoard;
@@ -15,12 +16,12 @@ export class OutputUi extends HTMLElement {
   
   async loadProjectInUi(projectId: string) {
     await this.gradebookMgr.loadOrCreateProject(projectId);
-    const video = this.querySelector('#video-input') as HTMLVideoElement;
+    const video = this.querySelector('#match-video-input') as HTMLVideoElement;
     video.pause();
   }
   
   handleKeydown(evt: KeyboardEvent) {
-    const video = this.querySelector('#video-input') as HTMLVideoElement;
+    const video = this.querySelector('#match-video-input') as HTMLVideoElement;
     if (matchKey(evt, 'o')) {
       const videoUpload = this.querySelector('#videoUpload') as HTMLInputElement;
       videoUpload.click();
@@ -37,64 +38,131 @@ export class OutputUi extends HTMLElement {
     }
   }
 
-  record() {
+  genMatchStream() {
     const canvas = this.querySelector('#canvas-output') as HTMLCanvasElement;
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
-    const video = this.querySelector('#video-input') as HTMLVideoElement;
-    this.scoreBoard.setMatchData(this.gradebookMgr.project.matchData);
+    const introVideo = this.querySelector('#intro-video-input') as HTMLVideoElement;
+    const introAudio = this.querySelector('#intro-audio-input') as HTMLAudioElement;
+    const matchVideo = this.querySelector('#match-video-input') as HTMLVideoElement;
+    const outroAudio = this.querySelector('#outro-audio-input') as HTMLAudioElement;
 
-    const drawVideoToCanvasRecursively = () => {
-      // Check if the video is ready to play
-      if (video.readyState >= 2) { // 2 = HAVE_CURRENT_DATA
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      }
-      this.scoreBoard.render(ctx, canvas.height);
-      requestAnimationFrame(drawVideoToCanvasRecursively);
+    // TODO memo-ized these as they cannot be re-initialized
+    // `HTMLMediaElement already connected previously to a different MediaElementSourceNode`
+    // Set up audio mixing
+    const audioContext = new AudioContext();
+    const introVideoSource = audioContext.createMediaElementSource(introVideo);
+    const matchVideoSource = audioContext.createMediaElementSource(matchVideo);
+    const introAudioSource = audioContext.createMediaElementSource(introAudio);
+    const outroAudioSource = audioContext.createMediaElementSource(outroAudio);
+    const audioDestination = audioContext.createMediaStreamDestination();
+    
+    // Connect sources to both recording destination and audio output
+    introVideoSource.connect(audioDestination);
+    introVideoSource.connect(audioContext.destination);
+    matchVideoSource.connect(audioDestination);
+    matchVideoSource.connect(audioContext.destination);
+    introAudioSource.connect(audioDestination);
+    introAudioSource.connect(audioContext.destination);
+    outroAudioSource.connect(audioDestination);
+    outroAudioSource.connect(audioContext.destination);
+
+    let videoForCanvas: HTMLVideoElement | null = null;
+    let scoreboardType = ScoreboardType.NONE;
+    introVideo.onplay = () => {
+      videoForCanvas = introVideo;
+      window.setTimeout(() => {
+        scoreboardType = ScoreboardType.PREVIEW;
+      }, (introAudio.duration - 30) / audioPlaybackRate * 1000 );
     };
-    drawVideoToCanvasRecursively();
+    matchVideo.onplay = () => {
+      videoForCanvas = matchVideo;
+      scoreboardType = ScoreboardType.CURRENT_SCORE;
+    };
+    outroAudio.onplay = () => {
+      scoreboardType = ScoreboardType.FINAL_STAT;
+    };
+
+    const drawToCanvasRecursively = () => {
+      // Check if the video is ready to play
+      if (videoForCanvas && videoForCanvas.readyState >= 2) { // 2 = HAVE_CURRENT_DATA
+        ctx.drawImage(videoForCanvas, 0, 0, canvas.width, canvas.height);
+      }
+      this.scoreBoard.render(scoreboardType, ctx, canvas.width, canvas.height);
+
+      requestAnimationFrame(drawToCanvasRecursively);
+    };
+    drawToCanvasRecursively();
 
     const outputStream = canvas.captureStream(this.fps);
-    // TODO see if we need to optimize via https://stackoverflow.com/a/71004151
-    // Casting: https://stackoverflow.com/a/68044674
-    const vStream = (video as any).captureStream();
-    outputStream.addTrack(vStream.getAudioTracks()[0]);
-    const mediaRecorder = new MediaRecorder(outputStream, { mimeType: 'video/mp4' });
+    // Add the mixed audio track
+    outputStream.addTrack(audioDestination.stream.getAudioTracks()[0]);
+    return outputStream;
+  }
+
+  record() {
     let recordedChunks: Blob[] = [];
-    video.onpause = function() {
-      mediaRecorder.stop();
-    }
-    mediaRecorder.ondataavailable = event => {
+
+    // Create 1 stream and 1 recorder.
+    // Orchestrate the start and stop of videos and audios
+    const matchStream = this.genMatchStream();
+    const mediaRecorderOptions = {
+      mimeType: 'video/webm',
+      frameRate: this.fps
+    };
+    const matchRecorder = new MediaRecorder(matchStream, mediaRecorderOptions);
+    matchRecorder.ondataavailable = event => {
       if (event.data.size > 0) {
         recordedChunks.push(event.data);
       }
-    };
+    }
+    matchRecorder.onstop = () => {
+      saveVideo(recordedChunks);
+      recordedChunks = [];
+    }
 
-    mediaRecorder.onstop = () => {
-        saveVideo(recordedChunks);
-        recordedChunks = [];
-    };
+    // Orchestrate
+    const introAudio = this.querySelector('#intro-audio-input') as HTMLAudioElement;
+    const introVideo = this.querySelector('#intro-video-input') as HTMLVideoElement;
+    const matchVideo = this.querySelector('#match-video-input') as HTMLVideoElement;
+    const outroAudio = this.querySelector('#outro-audio-input') as HTMLAudioElement;
+    introAudio.playbackRate = audioPlaybackRate;
+    outroAudio.playbackRate = audioPlaybackRate;
+    // introAudio.currentTime = 235;
+    // outroAudio.currentTime = 220;
+    this.scoreBoard.setMatchData(this.gradebookMgr.project.matchData);
 
-    this.jumpAndPlayRecursively();
-    mediaRecorder.start();
+    introAudio.onpause = () => {
+      introVideo.pause();
+      this.jumpAndPlayRecursively();
+    };
+    matchVideo.onpause = () => {
+      outroAudio.play();
+    };
+    outroAudio.onpause = () => {
+      matchRecorder.stop();
+    }
+    introAudio.play();
+    introVideo.play();
+    matchRecorder.start();
   }
 
   jumpAndPlayRecursively(rallyCtxIdx = 0) {
-  // jumpAndPlayRecursively(rallyCtxIdx = 1) {
+  // jumpAndPlayRecursively(rallyCtxIdx = 105) {
     if (!this.isPlaying) {
       return;
     }
     const rallyContexts = this.scoreBoard.rallyContexts;
-    const video = this.querySelector('#video-input') as HTMLVideoElement;
+    const video = this.querySelector('#match-video-input') as HTMLVideoElement;
     const rallyCtx = rallyContexts[rallyCtxIdx];
     this.scoreBoard.setRallyCtxIdx(rallyCtxIdx);
     const durationMs = rallyCtx.rally.endTime.ms - rallyCtx.rally.startTime.ms;
-    let rightPaddingMs = 3000;
-    if (durationMs < 12000) {
-      rightPaddingMs = 2000;
-    } else if (durationMs < 8000) {
-      rightPaddingMs = 800;
-    } else if (durationMs < 5000) {
-      rightPaddingMs = 200;
+    let rightPaddingMs = 2000;
+    if (durationMs < 15000) {
+      rightPaddingMs = 1500;
+    } else if (durationMs < 10000) {
+      rightPaddingMs = 500;
+    } else if (durationMs < 6000) {
+      rightPaddingMs = 100;
     }
     let leftPaddingMs = 1000;
     video.currentTime = (rallyCtx.rally.startTime.ms - leftPaddingMs) / 1000;
@@ -118,12 +186,12 @@ export class OutputUi extends HTMLElement {
 }
 
 function saveVideo(recordedChunks: Blob[]) {
-  const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+  const blob = new Blob(recordedChunks, { type: 'video/webm' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.style.display = 'none';
   a.href = url;
-  a.download = `output_${formatDate(new Date)}.mp4`;
+  a.download = `output_${formatDate(new Date)}.webm`;
   document.body.appendChild(a);
   a.click();
   URL.revokeObjectURL(url);
@@ -146,7 +214,12 @@ const htmlTemplate = `
 <div class="caption">canvasOutput</div>
 </div>
 <div>
-  <video id="video-input" controls src='./test_data/test.mp4'></video>
+  <video id="match-video-input" controls src='./test_data/4-5/match.mp4'></video>
 </div>
+<div>
+  <video id="intro-video-input" controls src='./test_data/4-5/warm-up.mp4'></video>
+</div>
+<audio id="intro-audio-input" src='./test_data/4-5/intro.wav' style='display:none;'></audio>
+<audio id="outro-audio-input" src='./test_data/4-5/outro.wav' style='display:none;'></audio>
 `
 customElements.define('output-ui', OutputUi);

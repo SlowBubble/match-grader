@@ -64,24 +64,29 @@ export class MatchStat {
     return `${Math.floor((p2Points / totalPoints) * 100)}%`;
   }
 
+  getP1NumForcingWins() {
+    const serverForcingWins = this.p1Stats.numFirstServeForcingWins + this.p1Stats.numSecondServeForcingWins;
+    const returnerForcingWins = this.p2Stats.numFirstServeForcingWinsByReturner + this.p2Stats.numSecondServeForcingWinsByReturner;
+    return serverForcingWins + returnerForcingWins;
+  }
   getP1ForcingWinPct() {
     const totalPoints = this.getTotalNumPoints();
     if (totalPoints === 0) {
       return '';
     }
-    const serverForcingWins = this.p1Stats.numFirstServeForcingWins + this.p1Stats.numSecondServeForcingWins;
-    const returnerForcingWins = this.p2Stats.numFirstServeForcingWinsByReturner + this.p2Stats.numSecondServeForcingWinsByReturner;
-    return `${Math.floor(((serverForcingWins + returnerForcingWins) / totalPoints) * 100)}%`;
+    return `${Math.floor((this.getP1NumForcingWins() / totalPoints) * 100)}%`;
   }
-
+  getP2NumForcingWins() {
+    const serverForcingWins = this.p2Stats.numFirstServeForcingWins + this.p2Stats.numSecondServeForcingWins;
+    const returnerForcingWins = this.p1Stats.numFirstServeForcingWinsByReturner + this.p1Stats.numSecondServeForcingWinsByReturner;
+    return serverForcingWins + returnerForcingWins;
+  }
   getP2ForcingWinPct() {
     const totalPoints = this.getTotalNumPoints();
     if (totalPoints === 0) {
       return '';
     }
-    const serverForcingWins = this.p2Stats.numFirstServeForcingWins + this.p2Stats.numSecondServeForcingWins;
-    const returnerForcingWins = this.p1Stats.numFirstServeForcingWinsByReturner + this.p1Stats.numSecondServeForcingWinsByReturner;
-    return `${Math.floor(((serverForcingWins + returnerForcingWins) / totalPoints) * 100)}%`;
+    return `${Math.floor((this.getP2NumForcingWins() / totalPoints) * 100)}%`;
   }
 
   getP1ForcingWinPctOnServe() {
@@ -176,24 +181,35 @@ export class MatchStat {
     return `${Math.floor((this.p1Stats.numSecondServeForcingWinsByReturner / this.p1Stats.numSecondServesMade) * 100)}%`;
   }
 
+  getP1NumUnforcedErrors() {
+    const serverUEs = this.p1Stats.numFirstServeUnforcedErrors + this.p1Stats.numSecondServeUnforcedErrors;
+    const returnerUEs = this.p2Stats.numFirstServeUnforcedErrorsByReturner + this.p2Stats.numSecondServeUnforcedErrorsByReturner;
+    return serverUEs + returnerUEs;
+  }
+  getP1NumUnforcedErrorsExceptDoubleFaults() {
+    return this.getP1NumUnforcedErrors() - (this.p1Stats.numSecondServes - this.p1Stats.numSecondServesMade);
+  }
   getP1UnforcedErrorPct() {
     const totalPoints = this.getTotalNumPoints();
     if (totalPoints === 0) {
       return '';
     }
-    const serverUEs = this.p1Stats.numFirstServeUnforcedErrors + this.p1Stats.numSecondServeUnforcedErrors;
-    const returnerUEs = this.p2Stats.numFirstServeUnforcedErrorsByReturner + this.p2Stats.numSecondServeUnforcedErrorsByReturner;
-    return `${Math.floor(((serverUEs + returnerUEs) / totalPoints) * 100)}%`;
+    return `${Math.floor((this.getP1NumUnforcedErrors() / totalPoints) * 100)}%`;
   }
-
+  getP2NumUnforcedErrors() {
+    const serverUEs = this.p2Stats.numFirstServeUnforcedErrors + this.p2Stats.numSecondServeUnforcedErrors;
+    const returnerUEs = this.p1Stats.numFirstServeUnforcedErrorsByReturner + this.p1Stats.numSecondServeUnforcedErrorsByReturner;
+    return serverUEs + returnerUEs;
+  }
+  getP2NumUnforcedErrorsExceptDoubleFaults() {
+    return this.getP2NumUnforcedErrors() - (this.p2Stats.numSecondServes - this.p2Stats.numSecondServesMade);
+  }
   getP2UnforcedErrorPct() {
     const totalPoints = this.getTotalNumPoints();
     if (totalPoints === 0) {
       return '';
     }
-    const serverUEs = this.p2Stats.numFirstServeUnforcedErrors + this.p2Stats.numSecondServeUnforcedErrors;
-    const returnerUEs = this.p1Stats.numFirstServeUnforcedErrorsByReturner + this.p1Stats.numSecondServeUnforcedErrorsByReturner;
-    return `${Math.floor(((serverUEs + returnerUEs) / totalPoints) * 100)}%`;
+    return `${Math.floor((this.getP2NumUnforcedErrors() / totalPoints) * 100)}%`;
   }
 
   getP1UnforcedErrorPctOnServe() {
@@ -422,6 +438,18 @@ export class PlayerStat {
       return '';
     }
     return `${Math.floor((this.numFirstServesMade / this.numFirstServes) * 100)}%`;
+  }
+  getFirstServeMissPct() {
+    if (this.numFirstServes === 0) {
+      return '';
+    }
+    return `${Math.floor(((this.numFirstServes - this.numFirstServesMade) / this.numFirstServes) * 100)}%`;
+  }
+  getSecondServeMissPct() {
+    if (this.numSecondServes === 0) {
+      return '';
+    }
+    return `${Math.floor(((this.numSecondServes - this.numSecondServesMade) / this.numSecondServes) * 100)}%`;
   }
 
   getSecondServePct() {

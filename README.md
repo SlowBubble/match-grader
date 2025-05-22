@@ -3,12 +3,27 @@
 
 ## Doing
 
-- Design intro
-- Design outro
+
+- Outro: add table (color green if more wins)
+  - Easy wins
+  - Medium wins
+  - Hard wins
+- Outro: Add a table of all the points in emojis
 
 ## Done
 
-- Display game history
+- Outro: Add this table
+  - Num of unforced errors
+  - Num of double faults
+  - Num of forced errors
+  - 1st serve %
+- Intro: Add table
+  - Consistency (rally)
+  - Quality (rally)
+  - Consistency (1st)
+  - Quality (1st)
+  - Consistency (2nd)
+  - Quality (2nd)
 
 ### Design video gen
 
