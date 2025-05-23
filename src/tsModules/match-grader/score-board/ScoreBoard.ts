@@ -3,6 +3,12 @@ import { RallyContext } from "../models/rally_context";
 import { isForcingWin, isSafeForcingWin } from "../models/risk_level";
 
 
+// https://ethanschoonover.com/solarized/
+const solarizedBase1 = '#ddd2c1';
+const solarizedBase2 = '#eee8d5';  // Solarized Light secondary
+const solarizedBase3 = '#fdf6e3';  
+const solarizedContent = '#657b83';  // Solarized Light content
+
 export enum ScoreboardType {
   NONE,
   PREVIEW,
@@ -20,6 +26,12 @@ export class ScoreBoard {
   private memoizedFinalStatTable: CellInfo[][] = [[]];
   private memoizedPreviewTable: CellInfo[][] = [[]];
 
+  private previousType: ScoreboardType = ScoreboardType.NONE;
+  private transitionStartTime = 0;
+  private readonly TRANSITION_DURATION = 1000; // milliseconds
+  private readonly TABLE_TRANSITION_DURATION = 500; // milliseconds
+  private readonly TABLE_DELAY = 500;  // Wait 4s for first row
+
   // Must call this to set up things.
   setMatchData(matchData: MatchData) {
     this.matchData = matchData;
@@ -33,6 +45,19 @@ export class ScoreBoard {
     this.memoizedCurrentScoreTable = this.computeCurrentScoreTable();
   }
   render(scoreboardType: ScoreboardType, ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    if (scoreboardType !== this.previousType) {
+      this.previousType = scoreboardType;
+      this.transitionStartTime = Date.now();
+    }
+
+    const elapsed = Date.now() - this.transitionStartTime;
+    const opacity = Math.min(elapsed / this.TRANSITION_DURATION, 1);
+    
+    // Save context state
+    ctx.save();
+    ctx.globalAlpha = opacity;
+
+    // Render based on type
     if (scoreboardType === ScoreboardType.CURRENT_SCORE) {
       this.renderScore(ctx, canvasHeight);
     } else if (scoreboardType === ScoreboardType.ALL_POINTS) {
@@ -42,6 +67,9 @@ export class ScoreBoard {
     } else if (scoreboardType === ScoreboardType.PREVIEW) {
       this.renderPreview(ctx, canvasWidth, canvasHeight);
     }
+
+    // Restore context state
+    ctx.restore();
   }
 
   private renderPreview(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
@@ -50,17 +78,26 @@ export class ScoreBoard {
   private renderFinalStat(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
     this.renderComparison(this.memoizedFinalStatTable, ctx, canvasWidth, canvasHeight);
   }
+
   // Center the table in both x and y axis.
   // Align the text horizontally in each cell.
   // Make all cells the same width.
   // No borders for each cell.
   private renderComparison(table: CellInfo[][], ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    const elapsed = Date.now() - this.transitionStartTime;
     const CELL_PADDING = 15;
     const Y_CELL_PADDING = 30;
-    const BLACK_BORDER = 40;  // Height of black border at top/bottom
-    const SIDE_BORDER = 20;   // Width of black border at left/right
+    const BORDER_WIDTH = 2;
     const textSize = 32;
     ctx.font = `bold ${textSize}px Arial`;
+
+    // Fill canvas with Solarized Light color
+    ctx.fillStyle = solarizedBase2;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    if (elapsed < this.TRANSITION_DURATION + this.TABLE_DELAY) {
+      return;  // Skip rendering if not enough time has passed
+    }
 
     // Calculate maximum width needed for each column
     const colWidths = Array(table[0].length).fill(0);
@@ -73,41 +110,46 @@ export class ScoreBoard {
 
     // Make all cells in each column the same width (use max width)
     const maxColWidth = Math.max(...colWidths);
-    colWidths.fill(maxColWidth);
+    colWidths.fill(maxColWidth); 
 
     const textHeight = textSize * 3 / 4;
     const cellHeight = textHeight + (Y_CELL_PADDING * 2);
-    const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0) + (SIDE_BORDER * 2);
-    const totalTableHeight = cellHeight * table.length + (BLACK_BORDER * 2);
+    const totalTableWidth = colWidths.reduce((sum, width) => sum + width, 0);
+    const totalTableHeight = cellHeight * table.length;
 
     // Center the table on canvas
     const xOffset = (canvasWidth - totalTableWidth) / 2;
     const yOffset = (canvasHeight - totalTableHeight) / 2;
 
-    // Draw black borders
-    ctx.fillStyle = 'black';
-    ctx.fillRect(xOffset, yOffset, totalTableWidth, BLACK_BORDER);  // Top border
-    ctx.fillRect(xOffset, yOffset + totalTableHeight - BLACK_BORDER, totalTableWidth, BLACK_BORDER);  // Bottom border
-    ctx.fillRect(xOffset, yOffset, SIDE_BORDER, totalTableHeight);  // Left border
-    ctx.fillRect(xOffset + totalTableWidth - SIDE_BORDER, yOffset, SIDE_BORDER, totalTableHeight);  // Right border
-
     table.forEach((row, rowIndex) => {
-      let x = xOffset + SIDE_BORDER;
-      const rowY = yOffset + BLACK_BORDER + (rowIndex * cellHeight);
+      // Calculate opacity for fade-in effect
+      const fadeProgress = Math.min((elapsed - this.TABLE_DELAY - this.TRANSITION_DURATION) / this.TABLE_TRANSITION_DURATION, 1);
+      ctx.save();
+      ctx.globalAlpha = fadeProgress;
+
+      let x = xOffset;
+      const rowY = yOffset + (rowIndex * cellHeight);
       row.forEach((cell, colIndex) => {
         const cellWidth = colWidths[colIndex];
         
-        // Draw cell background
-        ctx.fillStyle = cell.color;
+        // Draw cell background - use Solarized Light secondary if no color specified
+        ctx.fillStyle = cell.color || solarizedBase2;
         ctx.fillRect(x, rowY, cellWidth, cellHeight);
 
-        // Add black border around each cell
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 15;
-        ctx.strokeRect(x, rowY, cellWidth, cellHeight);
+        // Add bottom border for first row
+        if (rowIndex === 0) {
+          ctx.fillStyle = solarizedContent;
+          ctx.fillRect(x, rowY + cellHeight - BORDER_WIDTH, cellWidth, BORDER_WIDTH);
+        }
 
-        // Center text in cell
-        ctx.fillStyle = cell.textColor;
+        // Add vertical border after each cell (except last column)
+        if (colIndex < row.length - 1) {
+          ctx.fillStyle = solarizedContent;
+          ctx.fillRect(x + cellWidth - BORDER_WIDTH/2, rowY, BORDER_WIDTH, cellHeight);
+        }
+
+        // Center text in cell - use Solarized Light content color if no color specified
+        ctx.fillStyle = cell.textColor || solarizedContent;
         const textWidth = ctx.measureText(cell.text).width;
         const textX = x + (cellWidth - textWidth) / 2;
         const textY = rowY + cellHeight / 2 + textHeight / 2;
@@ -115,7 +157,10 @@ export class ScoreBoard {
 
         x += cellWidth;
       });
+
+      ctx.restore();
     });
+
   }
 
   private renderScore(ctx: CanvasRenderingContext2D, canvasHeight: number) {
@@ -143,12 +188,12 @@ export class ScoreBoard {
       let x = xOffset;
       row.forEach((cell, colIndex) => {
         const cellWidth = colWidths[colIndex];
-        ctx.fillStyle = cell.color;
+        ctx.fillStyle = cell.color || solarizedBase1;
         ctx.fillRect(x, yOffset + rowIndex * cellHeight, cellWidth, cellHeight);
-        ctx.strokeStyle = 'black';
+        ctx.strokeStyle = solarizedContent;
         ctx.lineWidth = 3;
         ctx.strokeRect(x, yOffset + rowIndex * cellHeight, cellWidth, cellHeight);
-        ctx.fillStyle = cell.textColor;
+        ctx.fillStyle = cell.textColor || solarizedContent;
         ctx.fillText(cell.text, x + CELL_PADDING, yOffset + (rowIndex * cellHeight) + CELL_PADDING + textHeight);
         x += cellWidth;
       });
@@ -181,15 +226,15 @@ export class ScoreBoard {
     const p1GamesBySet = score.p1.gamesByCompletedSet.concat([score.p1.games]);
     const p2GamesBySet = score.p2.gamesByCompletedSet.concat([score.p2.games]);
     p1GamesBySet.forEach((games, idx) => {
-      row1.push(new CellInfo(games.toString(), getColorForGames(games - p2GamesBySet[idx]), 'black'));
+      row1.push(new CellInfo(games.toString(), getColorForGames(games - p2GamesBySet[idx])));
     });
-    row1.push(new CellInfo(`${score.getP1PointsStr()} ${p1ServeStr}`, p1PointsColor));
+    row1.push(new CellInfo(`${score.getP1PointsStr()} ${p1ServeStr}`, '', p1PointsColor));
   
     const row2 = [new CellInfo(this.matchData.oppoName)];
     p2GamesBySet.forEach((games, idx) => {
-      row2.push(new CellInfo(games.toString(), getColorForGames(games - p1GamesBySet[idx]), 'black'));
+      row2.push(new CellInfo(games.toString(), getColorForGames(games - p1GamesBySet[idx])));
     });
-    row2.push(new CellInfo(`${score.getP2PointsStr()} ${p2ServeStr}`, p2PointsColor));
+    row2.push(new CellInfo(`${score.getP2PointsStr()} ${p2ServeStr}`, '', p2PointsColor));
     return [row1, row2];
   }
   private getHistoryTable(): CellInfo[][] {
@@ -209,11 +254,11 @@ export class ScoreBoard {
         rallyCtx.isDoubleFault(), rallyCtx.isSecondServe(),
         isForcingWin(rallyCtx), isSafeForcingWin(rallyCtx));
       if (rallyCtx.winnerIsMe()) {
-        row1.push(new CellInfo(resSymbol));
-        row2.push(new CellInfo(''));
+        row1.push(new CellInfo(resSymbol, solarizedBase3));
+        row2.push(new CellInfo('', solarizedBase3));
       } else {
-        row1.push(new CellInfo(''));
-        row2.push(new CellInfo(resSymbol));
+        row1.push(new CellInfo('', solarizedBase3));
+        row2.push(new CellInfo(resSymbol, solarizedBase3));
       }
     });
     return [row1, row2]
@@ -252,20 +297,35 @@ export class ScoreBoard {
       if (mult === 0) {
         return '--';
       }
-      return Array.from({length: mult}, () => easyWin).join(' ');
+      return Array.from({length: mult}, () => mediumWin).join(' ');
     }
+    const p1PowerRally = stat.getP1ForcingChancePct();
+    const p2PowerRally = stat.getP2ForcingChancePct();
+    table.push([
+      new CellInfo(getStr(p1PowerRally, p2PowerRally)),
+      new CellInfo('Power'),
+      new CellInfo(getStr(p1PowerRally, p2PowerRally, true)),
+    ]);
+    const p1ConsistencyRally = stat.getP2NumUnforcedErrorsExceptDoubleFaults();
+    const p2ConsistencyRally = stat.getP1NumUnforcedErrorsExceptDoubleFaults();
+    table.push([
+      new CellInfo(getStr(p1ConsistencyRally, p2ConsistencyRally,)),
+      new CellInfo('Consistent'),
+      new CellInfo(getStr(p1ConsistencyRally, p2ConsistencyRally, true)),
+    ]);
+
     const p1Power1stServe = stat.p1Stats.numFirstServeForcingChances;
     const p2Power1stServe = stat.p2Stats.numFirstServeForcingChances;
     table.push([
       new CellInfo(getStr(p1Power1stServe, p2Power1stServe)),
-      new CellInfo('Power (1st Serve)'),
+      new CellInfo('Power (1st)'),
       new CellInfo(getStr(p1Power1stServe, p2Power1stServe, true)),
     ]);
     const p1Consistency1stServe = stat.p1Stats.getFirstServePct();
     const p2Consistency1stServe = stat.p2Stats.getFirstServePct();
     table.push([
       new CellInfo(getStr(p1Consistency1stServe, p2Consistency1stServe)),
-      new CellInfo('Consistency (1st)'),
+      new CellInfo('Consistent (1st)'),
       new CellInfo(getStr(p1Consistency1stServe, p2Consistency1stServe, true)),
     ]);
 
@@ -280,27 +340,9 @@ export class ScoreBoard {
     const p2Consistency2ndServe = stat.p2Stats.getSecondServePct();
     table.push([
       new CellInfo(getStr(p1Consistency2ndServe, p2Consistency2ndServe)),
-      new CellInfo('Consistency (2nd)'),
+      new CellInfo('Consistent (2nd)'),
       new CellInfo(getStr(p1Consistency2ndServe, p2Consistency2ndServe, true)),
     ]);
-
-    const p1PowerRally = stat.getP1ForcingChancePct();
-    const p2PowerRally = stat.getP2ForcingChancePct();
-    table.push([
-      new CellInfo(getStr(p1PowerRally, p2PowerRally)),
-      new CellInfo('Power (Rally)'),
-      new CellInfo(getStr(p1PowerRally, p2PowerRally, true)),
-    ]);
-    // TODO exclude double faults
-    const p1ConsistencyRally = stat.getP2NumUnforcedErrorsExceptDoubleFaults();
-    const p2ConsistencyRally = stat.getP1NumUnforcedErrorsExceptDoubleFaults();
-    table.push([
-      new CellInfo(getStr(p1ConsistencyRally, p2ConsistencyRally,)),
-      new CellInfo('Consistency (Rally)'),
-      new CellInfo(getStr(p1ConsistencyRally, p2ConsistencyRally, true)),
-    ]);
-
-
 
     return table;
   }
@@ -316,46 +358,46 @@ export class ScoreBoard {
 
     // Errors
     function getColor(me: any, him: any): string {
-      return parseInt(me) > parseInt(him) ? '#b01' : 'black';
+      return parseInt(me) > parseInt(him) ? '#b01' : solarizedContent;
     }
     const p1Errors = stat.getP2PointsWon();
     const p2Errors = stat.getP1PointsWon();
     table.push([
-      new CellInfo(p1Errors.toString(), getColor(p1Errors, p2Errors)),
+      new CellInfo(p1Errors.toString(), '', getColor(p1Errors, p2Errors)),
       new CellInfo('Points Lost'),
-      new CellInfo(p2Errors.toString(), getColor(p2Errors, p1Errors)),
+      new CellInfo(p2Errors.toString(), '', getColor(p2Errors, p1Errors)),
     ]);
     // Forced Errors
     const p1ForcedErrors = stat.getP2NumForcingWins();
     const p2ForcedErrors = stat.getP1NumForcingWins();
     table.push([
-      new CellInfo(p1ForcedErrors.toString(), getColor(p1ForcedErrors, p2ForcedErrors)),
+      new CellInfo(p1ForcedErrors.toString(), '', getColor(p1ForcedErrors, p2ForcedErrors)),
       new CellInfo('Forced Errors'),
-      new CellInfo(p2ForcedErrors.toString(), getColor(p2ForcedErrors, p1ForcedErrors)),
+      new CellInfo(p2ForcedErrors.toString(), '', getColor(p2ForcedErrors, p1ForcedErrors)),
     ]);
     // Unforced Errors
     const p1UnforcedErrors = stat.getP1NumUnforcedErrors();
     const p2UnforcedErrors = stat.getP2NumUnforcedErrors();
     table.push([
-      new CellInfo(p1UnforcedErrors.toString(), getColor(p1UnforcedErrors, p2UnforcedErrors)),
+      new CellInfo(p1UnforcedErrors.toString(), '', getColor(p1UnforcedErrors, p2UnforcedErrors)),
       new CellInfo('Unforced Errors'),
-      new CellInfo(p2UnforcedErrors.toString(), getColor(p2UnforcedErrors, p1UnforcedErrors)),
+      new CellInfo(p2UnforcedErrors.toString(), '', getColor(p2UnforcedErrors, p1UnforcedErrors)),
     ]);
     // Double Faults
     const p1DoubleFaults = stat.p1Stats.numSecondServes - stat.p1Stats.numSecondServesMade;
     const p2DoubleFaults = stat.p2Stats.numSecondServes - stat.p2Stats.numSecondServesMade;
     table.push([
-      new CellInfo(p1DoubleFaults.toString(), getColor(p1DoubleFaults, p2DoubleFaults)),
+      new CellInfo(p1DoubleFaults.toString(), '', getColor(p1DoubleFaults, p2DoubleFaults)),
       new CellInfo('Double Faults'),
-      new CellInfo(p2DoubleFaults.toString(), getColor(p2DoubleFaults, p1DoubleFaults)),
+      new CellInfo(p2DoubleFaults.toString(), '', getColor(p2DoubleFaults, p1DoubleFaults)),
     ]);
     // 1st Serve %
-    const p1FirstServePct = stat.p1Stats.getFirstServePct();
-    const p2FirstServePct = stat.p2Stats.getFirstServePct();
+    const p1FirstServePct = stat.p1Stats.getFirstServeMissPct();
+    const p2FirstServePct = stat.p2Stats.getFirstServeMissPct();
     table.push([
-      new CellInfo(p1FirstServePct.toString(), getColor(p1FirstServePct, p2FirstServePct)),
+      new CellInfo(p1FirstServePct.toString(), '', getColor(p1FirstServePct, p2FirstServePct)),
       new CellInfo('1st Serve Miss'),
-      new CellInfo(p2FirstServePct.toString(), getColor(p2FirstServePct, p1FirstServePct)),
+      new CellInfo(p2FirstServePct.toString(), '', getColor(p2FirstServePct, p1FirstServePct)),
     ]);
     return table;
   }
@@ -380,13 +422,13 @@ export class ScoreBoard {
   }
 }
 
-const easyWin = '🟢';
-const mediumWin = '🟡';
+const easyWin = '⚫';
+const mediumWin = '🟢';
 const hardWin = '🔴';
-const easyWinSecondServe = '🍏';
-const mediumWinSecondServe = '🍋';
-const hardWinSecondServe = '🍎';
-const doubleFault = '💚';
+const easyWinSecondServe = '⬛';
+const mediumWinSecondServe = '🟩';
+const hardWinSecondServe = '🟥';
+const doubleFault = '🖤';
 
 function getResultSymbol(isDoubleFault = false, secondServe = false, isForced = false, isSafe = false): string {
   if (isDoubleFault) {
@@ -404,8 +446,8 @@ function getResultSymbol(isDoubleFault = false, secondServe = false, isForced = 
 class CellInfo {
   constructor(
     public text: string = '',
-    public color: string = 'black',
-    public textColor: string = 'white',
+    public color: string = '',
+    public textColor: string = '',
   ) {}
 }
 
@@ -426,10 +468,8 @@ function getColor(num: number, isSecondServe = false): string {
 }
 
 function getColorForGames(num: number): string {
-  if (num >= 2) {
-    return '#ff6';
-  } else if (num >= 0) {
-    return '#fc0';
+  if (num <= 0) {
+    return solarizedBase1;
   }
-  return '#ea0';
+  return solarizedBase3;
 }

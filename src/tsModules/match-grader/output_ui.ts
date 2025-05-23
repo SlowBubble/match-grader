@@ -2,6 +2,14 @@ import { matchKey } from "../key-match/key_match";
 import { GradebookMgr } from "./gradebook_mgr";
 import { ScoreBoard, ScoreboardType } from "./score-board/ScoreBoard";
 
+class Zoom {
+  constructor(
+    public startZoom: number = 1,
+    public endZoom: number = 1,
+    public durationMs: number = 1,
+  ) {}
+}
+
 const audioPlaybackRate = 1.1;
 export class OutputUi extends HTMLElement {
   private gradebookMgr = new GradebookMgr;
@@ -9,6 +17,11 @@ export class OutputUi extends HTMLElement {
   private fps = 30;
   private isPlaying = false;
   private currTimeoutId = -1;
+  private zoomStartTime: number | null = null;
+  private videoForCanvas: HTMLVideoElement | null = null;
+  private scoreboardType = ScoreboardType.NONE;
+  private zoomRallyIdx: number | null = null;
+  private precomputedZoomInstructions: Zoom[] = [];
   
   connectedCallback() {
     this.innerHTML = htmlTemplate;
@@ -40,7 +53,6 @@ export class OutputUi extends HTMLElement {
 
   genMatchStream() {
     const canvas = this.querySelector('#canvas-output') as HTMLCanvasElement;
-    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
     const introVideo = this.querySelector('#intro-video-input') as HTMLVideoElement;
     const introAudio = this.querySelector('#intro-audio-input') as HTMLAudioElement;
     const matchVideo = this.querySelector('#match-video-input') as HTMLVideoElement;
@@ -66,32 +78,21 @@ export class OutputUi extends HTMLElement {
     outroAudioSource.connect(audioDestination);
     outroAudioSource.connect(audioContext.destination);
 
-    let videoForCanvas: HTMLVideoElement | null = null;
-    let scoreboardType = ScoreboardType.NONE;
     introVideo.onplay = () => {
-      videoForCanvas = introVideo;
+      this.videoForCanvas = introVideo;
       window.setTimeout(() => {
-        scoreboardType = ScoreboardType.PREVIEW;
-      }, (introAudio.duration - 30) / audioPlaybackRate * 1000 );
+        this.scoreboardType = ScoreboardType.PREVIEW;
+      }, (introAudio.duration - 20) / audioPlaybackRate * 1000 );
     };
     matchVideo.onplay = () => {
-      videoForCanvas = matchVideo;
-      scoreboardType = ScoreboardType.CURRENT_SCORE;
+      this.videoForCanvas = matchVideo;
+      this.scoreboardType = ScoreboardType.CURRENT_SCORE;
     };
     outroAudio.onplay = () => {
-      scoreboardType = ScoreboardType.FINAL_STAT;
+      this.scoreboardType = ScoreboardType.FINAL_STAT;
     };
 
-    const drawToCanvasRecursively = () => {
-      // Check if the video is ready to play
-      if (videoForCanvas && videoForCanvas.readyState >= 2) { // 2 = HAVE_CURRENT_DATA
-        ctx.drawImage(videoForCanvas, 0, 0, canvas.width, canvas.height);
-      }
-      this.scoreBoard.render(scoreboardType, ctx, canvas.width, canvas.height);
-
-      requestAnimationFrame(drawToCanvasRecursively);
-    };
-    drawToCanvasRecursively();
+    this.drawToCanvasRecursively(canvas);
 
     const outputStream = canvas.captureStream(this.fps);
     // Add the mixed audio track
@@ -127,9 +128,10 @@ export class OutputUi extends HTMLElement {
     const outroAudio = this.querySelector('#outro-audio-input') as HTMLAudioElement;
     introAudio.playbackRate = audioPlaybackRate;
     outroAudio.playbackRate = audioPlaybackRate;
-    // introAudio.currentTime = 235;
+    introAudio.currentTime = 235;
     // outroAudio.currentTime = 220;
     this.scoreBoard.setMatchData(this.gradebookMgr.project.matchData);
+    this.precomputedZoomInstructions = this.computeZoomInstructions();
 
     introAudio.onpause = () => {
       introVideo.pause();
@@ -146,6 +148,67 @@ export class OutputUi extends HTMLElement {
     matchRecorder.start();
   }
 
+  private drawToCanvasRecursively(canvas: HTMLCanvasElement) {
+    const videoForCanvas = this.videoForCanvas;
+    const scoreboardType = this.scoreboardType;
+    const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
+    if (videoForCanvas && videoForCanvas.readyState >= 2) {
+      if (this.zoomRallyIdx === null) {
+        this.zoomStartTime = null;
+        ctx.drawImage(videoForCanvas, 0, 0, canvas.width, canvas.height);
+      } else {
+        const zoomInstruction = this.precomputedZoomInstructions[this.zoomRallyIdx] || new Zoom();
+        if (this.zoomStartTime === null) {
+          this.zoomStartTime = performance.now();
+        }
+        
+        const elapsed = performance.now() - this.zoomStartTime;
+        const progress = Math.min(elapsed / zoomInstruction.durationMs, 1);
+        const scale = zoomInstruction.startZoom - 
+          ((zoomInstruction.startZoom - zoomInstruction.endZoom) * progress);
+        
+        const sourceWidth = videoForCanvas.videoWidth * scale;
+        const sourceHeight = videoForCanvas.videoHeight * scale;
+        const sourceX = (videoForCanvas.videoWidth - sourceWidth) / 2;
+        const sourceY = (videoForCanvas.videoHeight - sourceHeight) / 2;
+        
+        ctx.drawImage(videoForCanvas, 
+          sourceX, sourceY, sourceWidth, sourceHeight,
+          0, 0, canvas.width, canvas.height
+        );
+      }
+    }
+    this.scoreBoard.render(scoreboardType, ctx, canvas.width, canvas.height);
+
+    requestAnimationFrame(() => this.drawToCanvasRecursively(canvas));
+  }
+
+  private computeZoomInstructions() {
+    let currZoom = 1;
+    return this.scoreBoard.rallyContexts.map(rallyCtx => {
+      if (rallyCtx.isNewSet()) {
+        const slowZoomIn = new Zoom(currZoom, currZoom - 0.06, 1500);
+        currZoom = slowZoomIn.endZoom;
+        return slowZoomIn;
+      } else if (rallyCtx.isNewGame()) {
+        const fastZoomIn = new Zoom(1, currZoom - 0.03, 500);
+        currZoom = fastZoomIn.endZoom;
+        return fastZoomIn;
+      } else if (!rallyCtx.isSecondServe()) {
+        if (currZoom < 1) {
+          currZoom += 0.01;
+        }
+        return new Zoom(currZoom, currZoom);
+      }
+      return new Zoom(currZoom, currZoom);
+    });
+  }
+
+  private setZoomRallyIdx(rallyCtxIdx: number) {
+    this.zoomRallyIdx = rallyCtxIdx;
+    this.zoomStartTime = null;
+  }
+
   jumpAndPlayRecursively(rallyCtxIdx = 0) {
   // jumpAndPlayRecursively(rallyCtxIdx = 105) {
     if (!this.isPlaying) {
@@ -155,6 +218,7 @@ export class OutputUi extends HTMLElement {
     const video = this.querySelector('#match-video-input') as HTMLVideoElement;
     const rallyCtx = rallyContexts[rallyCtxIdx];
     this.scoreBoard.setRallyCtxIdx(rallyCtxIdx);
+    this.setZoomRallyIdx(rallyCtxIdx);
     const durationMs = rallyCtx.rally.endTime.ms - rallyCtx.rally.startTime.ms;
     let rightPaddingMs = 2000;
     if (durationMs < 15000) {

@@ -3,27 +3,18 @@
 
 ## Doing
 
-
 - Outro: add table (color green if more wins)
   - Easy wins
   - Medium wins
   - Hard wins
+- Outro: easy/medium/hard wins, sliced by serve vs return.
 - Outro: Add a table of all the points in emojis
 
 ## Done
 
-- Outro: Add this table
-  - Num of unforced errors
-  - Num of double faults
-  - Num of forced errors
-  - 1st serve %
-- Intro: Add table
-  - Consistency (rally)
-  - Quality (rally)
-  - Consistency (1st)
-  - Quality (1st)
-  - Consistency (2nd)
-  - Quality (2nd)
+- 1st point of game: slow zoom in
+  - Next few points of a game: cut to less zoomed in (the next 4 rallies)
+- Solarize the scoreboard
 
 ### Design video gen
 
@@ -163,6 +154,8 @@
 
 ## P2
 
+- Get some AI generated drone shots in between games
+  - That may allow for adding a mid-match toilet break
 - Store the sort state in url for easier sharing
 - Consider making upDownArrowJumpsToStartTime = true always (remove impl that uses it).
 - Design a better pub-sub for when video time passes a key point.
