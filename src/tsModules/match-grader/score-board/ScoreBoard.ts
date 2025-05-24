@@ -1,10 +1,11 @@
 import { MatchData } from "../models/gradebook_models";
 import { RallyContext } from "../models/rally_context";
-import { getEasinessByGame, getEasinessForGame, Level } from "./stat";
+import { easyWin, getEasinessByGame, getEasinessForGame, hardWin, Level, mediumWin } from "./stat";
 
 
 // https://ethanschoonover.com/solarized/
 const solarizedBase1 = '#ddd2c1';
+const solarizedBase1a = '#e8e3cc';  // Solarized Light secondary
 const solarizedBase2 = '#eee8d5';  // Solarized Light secondary
 const solarizedBase3 = '#fdf6e3';  
 const solarizedContent = '#657b83';  // Solarized Light content
@@ -20,6 +21,10 @@ export enum ScoreboardType {
   END_OF_MATCH_STAT_3,
   END_OF_MATCH_STAT_4,
   END_OF_MATCH_STAT_5,
+  END_OF_MATCH_STAT_6,
+  END_OF_MATCH_STAT_7,
+  END_OF_MATCH_STAT_8,
+  END_OF_MATCH_STAT_9,
 }
 
 export class ScoreBoard {
@@ -34,8 +39,14 @@ export class ScoreBoard {
   private memoizedMatchStat3: CellInfo[][] = [[]];
   private memoizedMatchStat4: CellInfo[][] = [[]];
   private memoizedMatchStat5: CellInfo[][] = [[]];
+  private memoizedMatchStat6: CellInfo[][] = [[]];
+  private memoizedMatchStat7: CellInfo[][] = [[]];
+  private memoizedMatchStat8: CellInfo[][] = [[]];
+  private memoizedP1MatchStat9: CellInfo[][] = [[]];
+  private memoizedP2MatchStat9: CellInfo[][] = [[]];
   private memoizedPreviewTable: CellInfo[][] = [[]];
   private memoizedEndOfGameTable: CellInfo[][] = [[]];
+  private memoizedSxSTextSize: number | null = null;
 
   private previousType: ScoreboardType = ScoreboardType.NONE;
   private transitionStartTime = 0;
@@ -48,12 +59,23 @@ export class ScoreBoard {
     this.matchData = matchData;
     this.rallyContexts = this.matchData.getRallyContexts();
     console.log(this.rallyContexts);
+    this.memoizedPreviewTable = this.computePreviewTable();
     this.memoizedMatchStat1 = this.computeMatchStat();
     this.memoizedMatchStat2 = this.computeEasinessStat();
+    // Serving
     this.memoizedMatchStat3 = this.computeEasinessStat(true, false);
-    this.memoizedMatchStat4 = this.computeEasinessStat(false, true);
-    this.memoizedMatchStat5 = this.computeMatchStat();
-    this.memoizedPreviewTable = this.computePreviewTable();
+    // Serving (1st)
+    this.memoizedMatchStat4 = this.computeEasinessStat(true, false, true, false);
+    // Serving (2nd)
+    this.memoizedMatchStat5 = this.computeEasinessStat(true, false, false);
+    // Returning
+    this.memoizedMatchStat6 = this.computeEasinessStat(false, true);
+    // Returning (1st)
+    this.memoizedMatchStat7 = this.computeEasinessStat(false, true, true, false);
+    // Returning (2nd)
+    this.memoizedMatchStat8 = this.computeEasinessStat(false, true, false); 
+    this.memoizedP1MatchStat9 = this.getMatchHistory(true, false);
+    this.memoizedP2MatchStat9 = this.getMatchHistory(false, true);
   }
   setRallyCtxIdx(rallyCtxIdx: number) {
     this.rallyCtxIdx = rallyCtxIdx;
@@ -92,6 +114,14 @@ export class ScoreBoard {
       this.renderMatchStat4(ctx, canvasWidth, canvasHeight);
     } else if (scoreboardType === ScoreboardType.END_OF_MATCH_STAT_5) {
       this.renderMatchStat5(ctx, canvasWidth, canvasHeight);
+    } else if (scoreboardType === ScoreboardType.END_OF_MATCH_STAT_6) {
+      this.renderMatchStat6(ctx, canvasWidth, canvasHeight);
+    } else if (scoreboardType === ScoreboardType.END_OF_MATCH_STAT_7) {
+      this.renderMatchStat7(ctx, canvasWidth, canvasHeight);
+    } else if (scoreboardType === ScoreboardType.END_OF_MATCH_STAT_8) {
+      this.renderMatchStat8(ctx, canvasWidth, canvasHeight);
+    } else if (scoreboardType === ScoreboardType.END_OF_MATCH_STAT_9) {
+      this.renderMatchStat9(ctx, canvasWidth, canvasHeight);
     } else if (scoreboardType === ScoreboardType.PREVIEW) {
       this.renderPreview(ctx, canvasWidth, canvasHeight);
     }
@@ -120,6 +150,18 @@ export class ScoreBoard {
   }
   private renderMatchStat5(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
     this.renderComparison(this.memoizedMatchStat5, ctx, canvasWidth, canvasHeight);
+  }
+  private renderMatchStat6(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    this.renderComparison(this.memoizedMatchStat6, ctx, canvasWidth, canvasHeight);
+  }
+  private renderMatchStat7(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    this.renderComparison(this.memoizedMatchStat7, ctx, canvasWidth, canvasHeight);
+  }
+  private renderMatchStat8(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    this.renderComparison(this.memoizedMatchStat8, ctx, canvasWidth, canvasHeight);
+  }
+  private renderMatchStat9(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    this.renderSxsTables(ctx, canvasWidth, canvasHeight);
   }
 
   // Center the table in both x and y axis.
@@ -206,6 +248,135 @@ export class ScoreBoard {
 
   }
 
+  private renderSxsTables(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    ctx.fillStyle = solarizedBase2;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    const table = this.memoizedP1MatchStat9;
+    const table2 = this.memoizedP2MatchStat9;
+
+    if (!this.memoizedSxSTextSize) {
+      // Find optimal text size
+      let testSize = 31;
+      while (testSize > 1) {
+        const CELL_PADDING = testSize / 4;
+        ctx.font = `bold ${testSize}px Arial`;
+
+        // Calculate dimensions with this text size
+        let numCols = 0;
+        let totalRows = 0;
+        [table, table2].forEach(tbl => {
+          numCols = Math.max(numCols, ...tbl.map(row => row.length));
+          totalRows = Math.max(totalRows, tbl.length);
+        });
+
+        const colWidths = new Array(numCols).fill(0);
+        [table, table2].forEach(tbl => {
+          tbl.forEach(row => {
+            row.forEach((cell, colIndex) => {
+              const textWidth = ctx.measureText(cell.text).width;
+              colWidths[colIndex] = Math.max(colWidths[colIndex], textWidth + (CELL_PADDING * 2));
+            });
+          });
+        });
+
+        const totalWidth = (colWidths.reduce((sum, w) => sum + w, 0) * 2) + 20; // *2 for both tables + gap
+        const textHeight = testSize * 3 / 4;
+        const cellHeight = textHeight + (CELL_PADDING * 2);
+        const totalHeight = cellHeight * totalRows + 30; // +30 for top margin
+
+        if (totalWidth <= canvasWidth && totalHeight <= canvasHeight) {
+          this.memoizedSxSTextSize = testSize;
+          break;
+        }
+        testSize -= 2;
+      }
+    }
+    if (!this.memoizedSxSTextSize) {
+      this.memoizedSxSTextSize = 12; // Fallback to 12 if computation fails
+    }
+    const textSize = this.memoizedSxSTextSize;
+    const CELL_PADDING = textSize / 4;
+    ctx.font = `bold ${textSize}px Arial`;
+  
+    // Calculate column widths for both tables
+    let numCols = 0;
+    table.forEach(row => {
+      numCols = Math.max(numCols, row.length);
+    });
+    table2.forEach(row => {
+      numCols = Math.max(numCols, row.length);
+    });
+    const colWidths = new Array(numCols).fill(0);
+    [table, table2].forEach(tbl => {
+      tbl.forEach(row => {
+        row.forEach((cell, colIndex) => {
+          const textWidth = ctx.measureText(cell.text).width;
+          colWidths[colIndex] = Math.max(colWidths[colIndex], textWidth + (CELL_PADDING * 2));
+        });
+      });
+    });
+  
+    const textHeight = textSize * 3 / 4;
+    const cellHeight = textHeight + (CELL_PADDING * 2);
+    const topMargin = 30;
+    const yOffset = topMargin;
+    const centerX = canvasWidth / 2;
+
+    // Calculate total width needed per cell
+    let maxTableWidth = 0;
+    [table, table2].forEach(tbl => {
+      let tableWidth = 0;
+      tbl.forEach(row => {
+        let rowWidth = 0;
+        row.forEach((_, colIndex) => rowWidth += colWidths[colIndex]);
+        tableWidth = Math.max(tableWidth, rowWidth);
+      });
+      maxTableWidth = Math.max(maxTableWidth, tableWidth);
+    });
+
+    // Render left table (table1)
+    table.forEach((row, rowIndex) => {
+      let x = centerX - maxTableWidth - 10; // Start from left side of center
+      row.forEach((cell, colIndex) => {
+        const cellWidth = colWidths[colIndex];
+        ctx.fillStyle = cell.color || solarizedBase1;
+        ctx.fillRect(x, yOffset + rowIndex * cellHeight, cellWidth, cellHeight);
+        ctx.strokeStyle = solarizedContent;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, yOffset + rowIndex * cellHeight, cellWidth, cellHeight);
+        ctx.fillStyle = cell.textColor || solarizedContent;
+        
+        // Keep text centered in cell
+        const textWidth = ctx.measureText(cell.text).width;
+        const textX = x + (cellWidth - textWidth) / 2;
+        const textY = yOffset + rowIndex * cellHeight + (cellHeight + textHeight) / 2;
+        ctx.fillText(cell.text, textX, textY);
+        x += cellWidth;  // Move right after each cell
+      });
+    });
+
+    // Render right table (table2) - flipped horizontally
+    table2.forEach((row, rowIndex) => {
+      let x = centerX + 10; // Start from center, move right
+      row.forEach((cell, colIndex) => {
+        const cellWidth = colWidths[colIndex];
+        ctx.fillStyle = cell.color || solarizedBase1;
+        ctx.fillRect(x, yOffset + rowIndex * cellHeight, cellWidth, cellHeight);
+        ctx.strokeStyle = solarizedContent;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x, yOffset + rowIndex * cellHeight, cellWidth, cellHeight);
+        ctx.fillStyle = cell.textColor || solarizedContent;
+        
+        // Center text horizontally and vertically
+        const textWidth = ctx.measureText(cell.text).width;
+        const textX = x + (cellWidth - textWidth) / 2;
+        const textY = yOffset + rowIndex * cellHeight + (cellHeight + textHeight) / 2;
+        ctx.fillText(cell.text, textX, textY);
+        x += cellWidth;
+      });
+    });
+  }
+
   private renderScore(ctx: CanvasRenderingContext2D, canvasHeight: number, withHistory = false) {
     const table = withHistory ? this.memoizedCurrentScoreTableWithHistory : this.memoizedCurrentScoreTable;
     const CELL_PADDING = 12;
@@ -282,7 +453,7 @@ export class ScoreBoard {
     return [row1, row2];
   }
 
-  private getHistoryTable(): CellInfo[][] {
+  private getGameHistory(): CellInfo[][] {
     const row1: CellInfo[] = [];
     const row2: CellInfo[] = [];
 
@@ -292,6 +463,38 @@ export class ScoreBoard {
     });
     return [row1, row2]
   }
+  private getMatchHistory(includeP1Serving = true, includeP2Serving = true): CellInfo[][] {
+    const firstServerIsP1 = !this.matchData.secondServerIsMe;
+    const rows: CellInfo[][] = [];
+    if (firstServerIsP1 != includeP1Serving) {
+      rows.push([new CellInfo('')]);
+    }
+    getEasinessByGame(this.rallyContexts)
+    .filter(game => game.length > 0)
+    .forEach((game, gameIdx) => {
+      const p1IsServing = firstServerIsP1 && gameIdx % 2 == 0;
+      if (!includeP1Serving && p1IsServing) {
+        return;
+      }
+      if (!includeP2Serving && !p1IsServing) {
+        return;
+      }
+      const row0 = [game[0].scoreBeforeRally.p1.games.toString(), '-', game[0].scoreBeforeRally.p2.games.toString()].map((text) => {
+        return new CellInfo(text, solarizedBase1);
+      });
+      rows.push(row0);
+      const row1: CellInfo[] = [];
+      const row2: CellInfo[] = [];
+      rows.push(row1);
+      rows.push(row2);
+      game.forEach((easiness) => {
+        row1.push(new CellInfo(easiness.getStr(true), solarizedBase3));
+        row2.push(new CellInfo(easiness.getStr(false), solarizedBase1a));
+      });
+    });
+    return rows;
+  }
+
   
   private computePreviewTable(): CellInfo[][] {
     const table = [];
@@ -375,11 +578,18 @@ export class ScoreBoard {
 
     return table;
   }
-  private computeEasinessStat(includeServing = true, includeReturning = true): CellInfo[][] {
+  private computeEasinessStat(includeServing = true, includeReturning = true, includeFirstServe = true, includeSecondServe = true): CellInfo[][] {
     const table: CellInfo[][] = [];
     const p1LevelToCount = new Map();
     const p2LevelToCount = new Map();
     getEasinessByGame(this.rallyContexts).flat().forEach((easiness) => {
+      const isSecondServe = easiness.isSecondServe;
+      
+      // Skip if this serve type should not be included
+      if ((isSecondServe && !includeSecondServe) || (!isSecondServe && !includeFirstServe)) {
+        return;
+      }
+
       const p1Level = easiness.getLevel(true);
       if (!p1LevelToCount.has(p1Level)) {
         p1LevelToCount.set(p1Level, 0);
@@ -388,6 +598,7 @@ export class ScoreBoard {
       if (includeP1) {
         p1LevelToCount.set(p1Level, p1LevelToCount.get(p1Level) + 1);
       }
+
       const p2Level = easiness.getLevel(false);
       if (!p2LevelToCount.has(p2Level)) {
         p2LevelToCount.set(p2Level, 0);
@@ -404,6 +615,12 @@ export class ScoreBoard {
     if (!includeReturning) {
       title = 'Serving';
     }
+    if (!includeFirstServe) {
+      title += ' (2nd)';
+    }
+    if (!includeSecondServe) {
+      title += ' (1st)';
+    }
     table.push([
       new CellInfo(this.matchData.myName),
       new CellInfo(title, '', 'black'),
@@ -418,29 +635,47 @@ export class ScoreBoard {
     const p2MediumCount = p2LevelToCount.get(Level.Medium) || 0;
     const p1HardCount = p1LevelToCount.get(Level.Hard) || 0;
     const p2HardCount = p2LevelToCount.get(Level.Hard) || 0;
+    const p1NoneCount = p1LevelToCount.get(Level.None) || 0;
+    const p2NoneCount = p2LevelToCount.get(Level.None) || 0;
     const p1Points = p1EasyCount + p1MediumCount + p1HardCount;
     const p2Points = p2EasyCount + p2MediumCount + p2HardCount;
+    const p1Chances = p1Points + p1NoneCount;
+    const p2Chances = p2Points + p2NoneCount;
+    const p1Denom = Math.max(p1Chances, 1);
+    const p2Denom = Math.max(p2Chances, 1);
+    const p1EasyPct = Math.round((p1EasyCount / p1Denom) * 100);
+    const p2EasyPct = Math.round((p2EasyCount / p2Denom) * 100);
+    const p1MediumPct = Math.round((p1MediumCount / p1Denom) * 100);
+    const p2MediumPct = Math.round((p2MediumCount / p2Denom) * 100);
+    const p1HardPct = Math.round((p1HardCount / p1Denom) * 100);
+    const p2HardPct = Math.round((p2HardCount / p2Denom) * 100);
+    const p1PointsPct = Math.round((p1Points / p1Denom) * 100);
+    const p2PointsPct = Math.round((p2Points / p2Denom) * 100);
     table.push([
-      new CellInfo(p1Points.toString(), '', getColor(p1Points, p2Points)),
-      new CellInfo('Total Wins'),
-      new CellInfo(p2Points.toString(), '', getColor(p2Points, p1Points)),
+      new CellInfo(p1Chances.toString()),
+      new CellInfo('Chances'),
+      new CellInfo(p2Chances.toString()),
+    ]);
+    table.push([
+      new CellInfo(p1PointsPct.toString() + '%', '', getColor(p1PointsPct, p2PointsPct)),
+      new CellInfo('Wins'),
+      new CellInfo(p2PointsPct.toString() + '%', '', getColor(p2PointsPct, p1PointsPct)),
     ]);
 
-
     table.push([
-      new CellInfo(p1EasyCount.toString(), '', getColor(p1EasyCount, p2EasyCount)),
-      new CellInfo('Easy Wins'),
-      new CellInfo(p2EasyCount.toString(), '', getColor(p2EasyCount, p1EasyCount)),
+      new CellInfo(p1EasyPct.toString() + '%', '', getColor(p1EasyPct, p2EasyPct)),
+      new CellInfo(`${easyWin} Easy Wins`),
+      new CellInfo(p2EasyPct.toString() + '%', '', getColor(p2EasyPct, p1EasyPct)),
     ]);
     table.push([
-      new CellInfo(p1MediumCount.toString(), '', getColor(p1MediumCount, p2MediumCount)),
-      new CellInfo('Medium Wins'),
-      new CellInfo(p2MediumCount.toString(), '', getColor(p2MediumCount, p1MediumCount)),
+      new CellInfo(p1MediumPct.toString() + '%', '', getColor(p1MediumPct, p2MediumPct)), 
+      new CellInfo(`${mediumWin} Medium Wins`),
+      new CellInfo(p2MediumPct.toString() + '%', '', getColor(p2MediumPct, p1MediumPct)),
     ]);
     table.push([
-      new CellInfo(p1HardCount.toString(), '', getColor(p1HardCount, p2HardCount)),
-      new CellInfo('Hard Wins'),
-      new CellInfo(p2HardCount.toString(), '', getColor(p2HardCount, p1HardCount)),
+      new CellInfo(p1HardPct.toString() + '%', '', getColor(p1HardPct, p2HardPct)),
+      new CellInfo(`${hardWin} Hard Wins`),
+      new CellInfo(p2HardPct.toString() + '%', '', getColor(p2HardPct, p1HardPct)),
     ]);
     
     return table;
@@ -503,7 +738,7 @@ export class ScoreBoard {
     }
     const tables = [];
     tables.push(scoreTable);
-    tables.push(this.getHistoryTable());
+    tables.push(this.getGameHistory());
     const combined = [];
     // Combine the tables row by row
     for (let i = 0; i < Math.max(tables[0].length, tables[1].length); i++) {

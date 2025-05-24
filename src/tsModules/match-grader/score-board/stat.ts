@@ -1,5 +1,6 @@
 import { RallyContext } from "../models/rally_context";
 import { isForcingWin, isSafeForcingWin } from "../models/risk_level";
+import { Score } from "../models/score";
 
 export const easyWin = '🥝';
 export const mediumWin = '🍋';
@@ -24,6 +25,7 @@ class PointEasiness {
     public isSecondServe = false,
     public winnerIsMe = false,
     public serverIsMe = false,
+    public scoreBeforeRally: Score = new Score(),
   ) {}
   getStr(winnerIsMe: boolean) {
     if (winnerIsMe !== this.winnerIsMe) {
@@ -87,10 +89,10 @@ export function getEasinessByGame(rallyContexts: RallyContext[]): PointEasiness[
         rallyCtx.isSecondServe(),
         rallyCtx.winnerIsMe(),
         rallyCtx.rally.isMyServe,
+        rallyCtx.scoreBeforeRally,
       );
     });
   });
-  // .filter(game => game.length > 0);
 }
 
 export function getEasinessForGame(rallyContexts: RallyContext[], rallyCtxIdx: number): PointEasiness[] {

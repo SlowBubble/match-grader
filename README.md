@@ -3,23 +3,14 @@
 
 ## Doing
 
+- Don't show the END_OF_GAME_STAT for the last game.
+
+## Done
+
 - Outro: 1st vs 2nd
   - also add the denom.
 - Outro: Add a table of all the points in emojis
   - Scaling may be difficult (may need to zoom out at the end or truncate long games or add extra lines)
-
-## Done
-
-- Add an option to remove the history table (for end of game)
-  - Add in a simple stats page for 5 seconds
-    - Game duration
-    - first serves made / first serves  (%)
-    - second serves made / second serves (%)
-- Outro: add table (color green if more wins)
-  - Easy wins
-  - Medium wins
-  - Hard wins
-- Outro: easy/medium/hard wins, sliced by serve vs return.
 
 ## P1
 

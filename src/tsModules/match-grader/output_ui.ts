@@ -201,19 +201,31 @@ export class OutputUi extends HTMLElement {
     // Total: 2:20
     const durationMs = 35000;
     this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_1;
-    const timeout1 = window.setTimeout(() => {
+    this.longTimeouts.push(window.setTimeout(() => {
       this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_2;
-    }, durationMs);
+    }, durationMs));
     
-    const timeout2 = window.setTimeout(() => {
+    this.longTimeouts.push(window.setTimeout(() => {
       this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_3;
-    }, durationMs + shorterDurationMs);
-    
-    const timeout3 = window.setTimeout(() => {
+    }, durationMs + shorterDurationMs));
+    this.longTimeouts.push(window.setTimeout(() => {
       this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_4;
-    }, durationMs + shorterDurationMs * 2);
-
-    this.longTimeouts.push(timeout1, timeout2, timeout3);
+    }, durationMs + shorterDurationMs * 2));
+    this.longTimeouts.push(window.setTimeout(() => {
+      this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_5;
+    }, durationMs + shorterDurationMs * 3));
+    this.longTimeouts.push(window.setTimeout(() => {
+      this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_6;
+    }, durationMs + shorterDurationMs * 4));
+    this.longTimeouts.push(window.setTimeout(() => {
+      this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_7;
+    }, durationMs + shorterDurationMs * 5));
+    this.longTimeouts.push(window.setTimeout(() => {
+      this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_8;
+    }, durationMs + shorterDurationMs * 6));
+    this.longTimeouts.push(window.setTimeout(() => {
+      this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_9;
+    }, durationMs + shorterDurationMs * 7));
     
     const outroAudio = this.querySelector('#outro-audio-input') as HTMLAudioElement;
     outroAudio.play();

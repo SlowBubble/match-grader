@@ -88,6 +88,7 @@ export class MatchData {
     public myName = 'Me',
     public oppoName = 'Opponent',
     public urls: string[] = [],
+    public secondServerIsMe = false,
   ) {}
 
   static deserialize(json: any) {
@@ -97,6 +98,7 @@ export class MatchData {
       json.myName,
       json.oppoName,
       json.urls,
+      json.secondServerIsMe || false,
     );
   }
 
