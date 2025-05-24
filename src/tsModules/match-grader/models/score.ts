@@ -3,11 +3,13 @@ export class Score {
   constructor(
     public p1 = new PersonScore(),
     public p2 = new PersonScore(),
+    public numLets = 0,
   ) {}
   static deserialize(json: any) {
     return new Score(
       PersonScore.deserialize(json.p1),
       PersonScore.deserialize(json.p2),
+      json.numLets,
     );
   }
   clone() {

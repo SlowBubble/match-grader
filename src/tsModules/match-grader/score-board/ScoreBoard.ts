@@ -1,6 +1,6 @@
 import { MatchData } from "../models/gradebook_models";
 import { RallyContext } from "../models/rally_context";
-import { isForcingWin, isSafeForcingWin } from "../models/risk_level";
+import { getEasinessByGame, getEasinessForGame, Level } from "./stat";
 
 
 // https://ethanschoonover.com/solarized/
@@ -13,8 +13,13 @@ export enum ScoreboardType {
   NONE,
   PREVIEW,
   CURRENT_SCORE,
-  FINAL_STAT,
-  ALL_POINTS,
+  CURRENT_SCORE_WITH_HISTORY,
+  END_OF_GAME_STAT,
+  END_OF_MATCH_STAT_1,
+  END_OF_MATCH_STAT_2,
+  END_OF_MATCH_STAT_3,
+  END_OF_MATCH_STAT_4,
+  END_OF_MATCH_STAT_5,
 }
 
 export class ScoreBoard {
@@ -23,26 +28,38 @@ export class ScoreBoard {
 
   public rallyCtxIdx = 0;
   private memoizedCurrentScoreTable: CellInfo[][] = [[]];
-  private memoizedFinalStatTable: CellInfo[][] = [[]];
+  private memoizedCurrentScoreTableWithHistory: CellInfo[][] = [[]];
+  private memoizedMatchStat1: CellInfo[][] = [[]];
+  private memoizedMatchStat2: CellInfo[][] = [[]];
+  private memoizedMatchStat3: CellInfo[][] = [[]];
+  private memoizedMatchStat4: CellInfo[][] = [[]];
+  private memoizedMatchStat5: CellInfo[][] = [[]];
   private memoizedPreviewTable: CellInfo[][] = [[]];
+  private memoizedEndOfGameTable: CellInfo[][] = [[]];
 
   private previousType: ScoreboardType = ScoreboardType.NONE;
   private transitionStartTime = 0;
-  private readonly TRANSITION_DURATION = 1000; // milliseconds
-  private readonly TABLE_TRANSITION_DURATION = 500; // milliseconds
-  private readonly TABLE_DELAY = 500;  // Wait 4s for first row
+  private readonly TRANSITION_DURATION = 500; // from paused video to blank screen
+  private readonly TABLE_DELAY = 200;  // from blank screen to table transition
+  private readonly TABLE_TRANSITION_DURATION = 300; // from table transition to full table
 
   // Must call this to set up things.
   setMatchData(matchData: MatchData) {
     this.matchData = matchData;
     this.rallyContexts = this.matchData.getRallyContexts();
     console.log(this.rallyContexts);
-    this.memoizedFinalStatTable = this.computeFinalStatTable();
+    this.memoizedMatchStat1 = this.computeMatchStat();
+    this.memoizedMatchStat2 = this.computeEasinessStat();
+    this.memoizedMatchStat3 = this.computeEasinessStat(true, false);
+    this.memoizedMatchStat4 = this.computeEasinessStat(false, true);
+    this.memoizedMatchStat5 = this.computeMatchStat();
     this.memoizedPreviewTable = this.computePreviewTable();
   }
   setRallyCtxIdx(rallyCtxIdx: number) {
     this.rallyCtxIdx = rallyCtxIdx;
     this.memoizedCurrentScoreTable = this.computeCurrentScoreTable();
+    this.memoizedCurrentScoreTableWithHistory = this.computeCurrentScoreTable(true);
+    this.memoizedEndOfGameTable = this.computeMatchStat(true, true);
   }
   render(scoreboardType: ScoreboardType, ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
     if (scoreboardType !== this.previousType) {
@@ -60,10 +77,21 @@ export class ScoreBoard {
     // Render based on type
     if (scoreboardType === ScoreboardType.CURRENT_SCORE) {
       this.renderScore(ctx, canvasHeight);
-    } else if (scoreboardType === ScoreboardType.ALL_POINTS) {
-      // this.renderScore(ctx, canvasHeight);
-    } else if (scoreboardType === ScoreboardType.FINAL_STAT) {
-      this.renderFinalStat(ctx, canvasWidth, canvasHeight);
+    } else if (scoreboardType === ScoreboardType.CURRENT_SCORE_WITH_HISTORY) {
+      this.renderScore(ctx, canvasHeight, true);
+    } else if (scoreboardType === ScoreboardType.END_OF_GAME_STAT) {
+      this.renderGameStat(ctx, canvasWidth, canvasHeight);
+      this.renderScore(ctx, canvasHeight, true);
+    } else if (scoreboardType === ScoreboardType.END_OF_MATCH_STAT_1) {
+      this.renderMatchStat1(ctx, canvasWidth, canvasHeight);
+    } else if (scoreboardType === ScoreboardType.END_OF_MATCH_STAT_2) {
+      this.renderMatchStat2(ctx, canvasWidth, canvasHeight);
+    } else if (scoreboardType === ScoreboardType.END_OF_MATCH_STAT_3) {
+      this.renderMatchStat3(ctx, canvasWidth, canvasHeight);
+    } else if (scoreboardType === ScoreboardType.END_OF_MATCH_STAT_4) {
+      this.renderMatchStat4(ctx, canvasWidth, canvasHeight);
+    } else if (scoreboardType === ScoreboardType.END_OF_MATCH_STAT_5) {
+      this.renderMatchStat5(ctx, canvasWidth, canvasHeight);
     } else if (scoreboardType === ScoreboardType.PREVIEW) {
       this.renderPreview(ctx, canvasWidth, canvasHeight);
     }
@@ -72,11 +100,26 @@ export class ScoreBoard {
     ctx.restore();
   }
 
+  private renderGameStat(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    this.renderComparison(this.memoizedEndOfGameTable, ctx, canvasWidth, canvasHeight);
+  }
   private renderPreview(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
     this.renderComparison(this.memoizedPreviewTable, ctx, canvasWidth, canvasHeight);
   }
-  private renderFinalStat(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
-    this.renderComparison(this.memoizedFinalStatTable, ctx, canvasWidth, canvasHeight);
+  private renderMatchStat1(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    this.renderComparison(this.memoizedMatchStat1, ctx, canvasWidth, canvasHeight);
+  }
+  private renderMatchStat2(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    this.renderComparison(this.memoizedMatchStat2, ctx, canvasWidth, canvasHeight);
+  }
+  private renderMatchStat3(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    this.renderComparison(this.memoizedMatchStat3, ctx, canvasWidth, canvasHeight);
+  }
+  private renderMatchStat4(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    this.renderComparison(this.memoizedMatchStat4, ctx, canvasWidth, canvasHeight);
+  }
+  private renderMatchStat5(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    this.renderComparison(this.memoizedMatchStat5, ctx, canvasWidth, canvasHeight);
   }
 
   // Center the table in both x and y axis.
@@ -163,14 +206,15 @@ export class ScoreBoard {
 
   }
 
-  private renderScore(ctx: CanvasRenderingContext2D, canvasHeight: number) {
+  private renderScore(ctx: CanvasRenderingContext2D, canvasHeight: number, withHistory = false) {
+    const table = withHistory ? this.memoizedCurrentScoreTableWithHistory : this.memoizedCurrentScoreTable;
     const CELL_PADDING = 12;
     const textSize = 20;
     ctx.font = `bold ${textSize}px Arial`;
   
     // Calculate column widths
-    const colWidths = new Array(this.memoizedCurrentScoreTable[0].length).fill(0);
-    this.memoizedCurrentScoreTable.forEach(row => {
+    const colWidths = new Array(table[0].length).fill(0);
+    table.forEach(row => {
       row.forEach((cell, colIndex) => {
         const textWidth = ctx.measureText(cell.text).width;
         colWidths[colIndex] = Math.max(colWidths[colIndex], textWidth + (CELL_PADDING * 2));
@@ -179,12 +223,12 @@ export class ScoreBoard {
   
     const textHeight = textSize * 3 / 4;
     const cellHeight = textHeight + (CELL_PADDING * 2);
-    const totalTableHeight = cellHeight * this.memoizedCurrentScoreTable.length;
+    const totalTableHeight = cellHeight * table.length;
     const xOffset = 10;
     const bottomMargin = 30;
     const yOffset = canvasHeight - totalTableHeight - bottomMargin;
   
-    this.memoizedCurrentScoreTable.forEach((row, rowIndex) => {
+    table.forEach((row, rowIndex) => {
       let x = xOffset;
       row.forEach((cell, colIndex) => {
         const cellWidth = colWidths[colIndex];
@@ -237,29 +281,14 @@ export class ScoreBoard {
     row2.push(new CellInfo(`${score.getP2PointsStr()} ${p2ServeStr}`, '', p2PointsColor));
     return [row1, row2];
   }
+
   private getHistoryTable(): CellInfo[][] {
     const row1: CellInfo[] = [];
     const row2: CellInfo[] = [];
 
-    // Filter out all context to the right of the last one which isNewGame.
-    const lastRallyIdx = this.rallyContexts
-      .slice(0, this.rallyCtxIdx)
-      .findLastIndex(rallyCtx => rallyCtx.isNewGame());
-    const contexts = this.rallyContexts.slice(lastRallyIdx, this.rallyCtxIdx)
-      .filter(rallyCtx => rallyCtx.winnerIsMe() || rallyCtx.winnerIsOppo());
-
-    // If player 1 wins, add an O to row1, else add an O to row2
-    contexts.forEach((rallyCtx) => {
-      const resSymbol = getResultSymbol(
-        rallyCtx.isDoubleFault(), rallyCtx.isSecondServe(),
-        isForcingWin(rallyCtx), isSafeForcingWin(rallyCtx));
-      if (rallyCtx.winnerIsMe()) {
-        row1.push(new CellInfo(resSymbol, solarizedBase3));
-        row2.push(new CellInfo('', solarizedBase3));
-      } else {
-        row1.push(new CellInfo('', solarizedBase3));
-        row2.push(new CellInfo(resSymbol, solarizedBase3));
-      }
+    getEasinessForGame(this.rallyContexts, this.rallyCtxIdx).forEach((easiness) => {
+      row1.push(new CellInfo(easiness.getStr(true), solarizedBase3));
+      row2.push(new CellInfo(easiness.getStr(false), solarizedBase3));
     });
     return [row1, row2]
   }
@@ -297,7 +326,7 @@ export class ScoreBoard {
       if (mult === 0) {
         return '--';
       }
-      return Array.from({length: mult}, () => mediumWin).join(' ');
+      return Array.from({length: mult}, () => '🟢').join(' ');
     }
     const p1PowerRally = stat.getP1ForcingChancePct();
     const p2PowerRally = stat.getP2ForcingChancePct();
@@ -346,9 +375,80 @@ export class ScoreBoard {
 
     return table;
   }
-  private computeFinalStatTable(): CellInfo[][] {
+  private computeEasinessStat(includeServing = true, includeReturning = true): CellInfo[][] {
+    const table: CellInfo[][] = [];
+    const p1LevelToCount = new Map();
+    const p2LevelToCount = new Map();
+    getEasinessByGame(this.rallyContexts).flat().forEach((easiness) => {
+      const p1Level = easiness.getLevel(true);
+      if (!p1LevelToCount.has(p1Level)) {
+        p1LevelToCount.set(p1Level, 0);
+      }
+      const includeP1 = (includeServing && easiness.serverIsMe) || (includeReturning && !easiness.serverIsMe);
+      if (includeP1) {
+        p1LevelToCount.set(p1Level, p1LevelToCount.get(p1Level) + 1);
+      }
+      const p2Level = easiness.getLevel(false);
+      if (!p2LevelToCount.has(p2Level)) {
+        p2LevelToCount.set(p2Level, 0);
+      }
+      const includeP2 = (includeServing && !easiness.serverIsMe) || (includeReturning && easiness.serverIsMe);
+      if (includeP2) {
+        p2LevelToCount.set(p2Level, p2LevelToCount.get(p2Level) + 1);
+      }
+    });
+    let title = '';
+    if (!includeServing) {
+      title = 'Returning';
+    }
+    if (!includeReturning) {
+      title = 'Serving';
+    }
+    table.push([
+      new CellInfo(this.matchData.myName),
+      new CellInfo(title, '', 'black'),
+      new CellInfo(this.matchData.oppoName),
+    ]);
+    function getColor(me: any, him: any): string {
+      return parseInt(me) > parseInt(him) ? '#3a3' : solarizedContent;
+    }
+    const p1EasyCount = p1LevelToCount.get(Level.Easy) || 0;
+    const p2EasyCount = p2LevelToCount.get(Level.Easy) || 0;
+    const p1MediumCount = p1LevelToCount.get(Level.Medium) || 0;
+    const p2MediumCount = p2LevelToCount.get(Level.Medium) || 0;
+    const p1HardCount = p1LevelToCount.get(Level.Hard) || 0;
+    const p2HardCount = p2LevelToCount.get(Level.Hard) || 0;
+    const p1Points = p1EasyCount + p1MediumCount + p1HardCount;
+    const p2Points = p2EasyCount + p2MediumCount + p2HardCount;
+    table.push([
+      new CellInfo(p1Points.toString(), '', getColor(p1Points, p2Points)),
+      new CellInfo('Total Wins'),
+      new CellInfo(p2Points.toString(), '', getColor(p2Points, p1Points)),
+    ]);
+
+
+    table.push([
+      new CellInfo(p1EasyCount.toString(), '', getColor(p1EasyCount, p2EasyCount)),
+      new CellInfo('Easy Wins'),
+      new CellInfo(p2EasyCount.toString(), '', getColor(p2EasyCount, p1EasyCount)),
+    ]);
+    table.push([
+      new CellInfo(p1MediumCount.toString(), '', getColor(p1MediumCount, p2MediumCount)),
+      new CellInfo('Medium Wins'),
+      new CellInfo(p2MediumCount.toString(), '', getColor(p2MediumCount, p1MediumCount)),
+    ]);
+    table.push([
+      new CellInfo(p1HardCount.toString(), '', getColor(p1HardCount, p2HardCount)),
+      new CellInfo('Hard Wins'),
+      new CellInfo(p2HardCount.toString(), '', getColor(p2HardCount, p1HardCount)),
+    ]);
+    
+    return table;
+  }
+  private computeMatchStat(useCurrIdx = false, condensed = false): CellInfo[][] {
     const table = [];
-    const stat = this.rallyContexts[this.rallyContexts.length - 1].matchStatBeforeRally;
+    const idx = useCurrIdx ? this.rallyCtxIdx : this.rallyContexts.length - 1;
+    const stat = this.rallyContexts[idx].matchStatBeforeRally;
     // Name
     table.push([
       new CellInfo(this.matchData.myName),
@@ -367,14 +467,6 @@ export class ScoreBoard {
       new CellInfo('Points Lost'),
       new CellInfo(p2Errors.toString(), '', getColor(p2Errors, p1Errors)),
     ]);
-    // Forced Errors
-    const p1ForcedErrors = stat.getP2NumForcingWins();
-    const p2ForcedErrors = stat.getP1NumForcingWins();
-    table.push([
-      new CellInfo(p1ForcedErrors.toString(), '', getColor(p1ForcedErrors, p2ForcedErrors)),
-      new CellInfo('Forced Errors'),
-      new CellInfo(p2ForcedErrors.toString(), '', getColor(p2ForcedErrors, p1ForcedErrors)),
-    ]);
     // Unforced Errors
     const p1UnforcedErrors = stat.getP1NumUnforcedErrors();
     const p2UnforcedErrors = stat.getP2NumUnforcedErrors();
@@ -383,6 +475,9 @@ export class ScoreBoard {
       new CellInfo('Unforced Errors'),
       new CellInfo(p2UnforcedErrors.toString(), '', getColor(p2UnforcedErrors, p1UnforcedErrors)),
     ]);
+    if (condensed) {
+      return table;
+    }
     // Double Faults
     const p1DoubleFaults = stat.p1Stats.numSecondServes - stat.p1Stats.numSecondServesMade;
     const p2DoubleFaults = stat.p2Stats.numSecondServes - stat.p2Stats.numSecondServesMade;
@@ -401,9 +496,13 @@ export class ScoreBoard {
     ]);
     return table;
   }
-  private computeCurrentScoreTable(): CellInfo[][] {
+  private computeCurrentScoreTable(withHistory = false): CellInfo[][] {
+    const scoreTable = this.getScoreTable();
+    if (!withHistory) {
+      return scoreTable;
+    }
     const tables = [];
-    tables.push(this.getScoreTable());
+    tables.push(scoreTable);
     tables.push(this.getHistoryTable());
     const combined = [];
     // Combine the tables row by row
@@ -420,27 +519,6 @@ export class ScoreBoard {
     }
     return combined;
   }
-}
-
-const easyWin = '⚫';
-const mediumWin = '🟢';
-const hardWin = '🔴';
-const easyWinSecondServe = '⬛';
-const mediumWinSecondServe = '🟩';
-const hardWinSecondServe = '🟥';
-const doubleFault = '🖤';
-
-function getResultSymbol(isDoubleFault = false, secondServe = false, isForced = false, isSafe = false): string {
-  if (isDoubleFault) {
-    return doubleFault;
-  }
-  if (isForced) {
-    if (isSafe) {
-      return secondServe ? mediumWinSecondServe : mediumWin;
-    }
-    return secondServe ? hardWinSecondServe : hardWin;
-  }
-  return secondServe ? easyWinSecondServe : easyWin;
 }
 
 class CellInfo {

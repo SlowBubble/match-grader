@@ -3,18 +3,109 @@
 
 ## Doing
 
+- Outro: 1st vs 2nd
+  - also add the denom.
+- Outro: Add a table of all the points in emojis
+  - Scaling may be difficult (may need to zoom out at the end or truncate long games or add extra lines)
+
+## Done
+
+- Add an option to remove the history table (for end of game)
+  - Add in a simple stats page for 5 seconds
+    - Game duration
+    - first serves made / first serves  (%)
+    - second serves made / second serves (%)
 - Outro: add table (color green if more wins)
   - Easy wins
   - Medium wins
   - Hard wins
 - Outro: easy/medium/hard wins, sliced by serve vs return.
-- Outro: Add a table of all the points in emojis
 
-## Done
+## P1
 
-- 1st point of game: slow zoom in
-  - Next few points of a game: cut to less zoomed in (the next 4 rallies)
-- Solarize the scoreboard
+- Welcome to the mid-match toilet break, brought to you by my buddy, Stefanos.
+  - Mid-match stats
+  - Drone shots
+- Smart replayer
+
+- Add a stat column for deuce and ad side breakdown
+
+- Sorting
+  - Sort by descending start time as the last dimension (default when no other dim is specified)
+  - When a column header is pressed, sort and then move to the very bottom for easy replaying purposes.
+
+### Design sort and filter
+
+- E2E
+  - Encapsulate them together in select state
+  - Do this selection before passing it to the table and special replayer
+  - Just worry about watch mode; when we filter using stats, we start from the first point, hiding other points
+- How does replaying works if the select state is not the default?
+  - The special replayer checks every 2 seconds whether an end point is passed and move to the next start poing.
+  - Give a buffer of 4 seconds before automatically going to the next point
+  - Need to display the first vs second serve since we will exclude faults when replaying
+  - No need to hide spoilers if non-default select state
+
+
+### Create a video with the score
+
+- Press x to export.
+- M1: Will ask for the video file
+
+### Design stats impl
+
+- Slice stats by current game and current set and overall???
+  - Can then use it for things like break pt #2.
+
+- P2 stats
+  - Num game pts
+  - Game pt conversion %
+  - Num break pts
+  - Break pt conversion %
+  - Num break opportunities
+
+- Think about what stats to highlight
+  - (e.g. serving stats at the end of a server's game)
+  - If a certain stats have enough sample size and dips below a certain threshold or much worse than the oppo.
+
+## P2
+
+- Get some AI generated drone shots in between games
+  - That may allow for adding a mid-match toilet break
+- Store the sort state in url for easier sharing
+- Consider making upDownArrowJumpsToStartTime = true always (remove impl that uses it).
+- Design a better pub-sub for when video time passes a key point.
+- Think of other features for watch mode
+  - Option: Skip the pauses automatically
+  - Option: Skip the single faults
+  - Option: Skip things shorter than 5 seconds.
+
+- Add UTR or USTA rating
+
+- Add a column for 1st or 2nd serve
+  - This will allow slicing
+- Remove Score deps from Rally
+  - RallyContext depends on Score, depends on Rally.
+
+- Bold the border between games and bolder between sets
+- color the table (using thicker right border for the duration)
+
+- If a serve is modified, confirm if they want to change it for the rest of the points.
+- scoreOverride
+  - Score data can be done with 4 buttons (incre/decrement me or oppo points)
+
+- Think about a final shot normalized rating columns
+
+- Undo, Unsave status
+- Project title above menu button
+  - Edit
+  - Show Unsave status
+
+
+# Done
+
+
+# Design
 
 ### Design video gen
 
@@ -106,90 +197,6 @@
 - P3: Add interesting plot lines (add in slow mo to let user digest it)
   - Game pt: game pt chances | game pt converted
 - P3: See if I can split up the podcast and put it in later breaks
-
-
-## P1
-
-- Smart replayer
-
-- Add a stat column for deuce and ad side breakdown
-
-- Sorting
-  - Sort by descending start time as the last dimension (default when no other dim is specified)
-  - When a column header is pressed, sort and then move to the very bottom for easy replaying purposes.
-
-### Design sort and filter
-
-- E2E
-  - Encapsulate them together in select state
-  - Do this selection before passing it to the table and special replayer
-  - Just worry about watch mode; when we filter using stats, we start from the first point, hiding other points
-- How does replaying works if the select state is not the default?
-  - The special replayer checks every 2 seconds whether an end point is passed and move to the next start poing.
-  - Give a buffer of 4 seconds before automatically going to the next point
-  - Need to display the first vs second serve since we will exclude faults when replaying
-  - No need to hide spoilers if non-default select state
-
-
-### Create a video with the score
-
-- Press x to export.
-- M1: Will ask for the video file
-
-### Design stats impl
-
-- Slice stats by current game and current set and overall???
-  - Can then use it for things like break pt #2.
-
-- P2 stats
-  - Num game pts
-  - Game pt conversion %
-  - Num break pts
-  - Break pt conversion %
-  - Num break opportunities
-
-- Think about what stats to highlight
-  - (e.g. serving stats at the end of a server's game)
-  - If a certain stats have enough sample size and dips below a certain threshold or much worse than the oppo.
-
-## P2
-
-- Get some AI generated drone shots in between games
-  - That may allow for adding a mid-match toilet break
-- Store the sort state in url for easier sharing
-- Consider making upDownArrowJumpsToStartTime = true always (remove impl that uses it).
-- Design a better pub-sub for when video time passes a key point.
-- Think of other features for watch mode
-  - Option: Skip the pauses automatically
-  - Option: Skip the single faults
-  - Option: Skip things shorter than 5 seconds.
-
-- Add UTR or USTA rating
-
-- Add a column for 1st or 2nd serve
-  - This will allow slicing
-- Remove Score deps from Rally
-  - RallyContext depends on Score, depends on Rally.
-
-- Bold the border between games and bolder between sets
-- color the table (using thicker right border for the duration)
-
-- If a serve is modified, confirm if they want to change it for the rest of the points.
-- scoreOverride
-  - Score data can be done with 4 buttons (incre/decrement me or oppo points)
-
-- Think about a final shot normalized rating columns
-
-- Undo, Unsave status
-- Project title above menu button
-  - Edit
-  - Show Unsave status
-
-
-# Done
-
-
-# Design
 
 ## Watch mode
 

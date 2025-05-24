@@ -7,7 +7,15 @@ class Zoom {
     public startZoom: number = 1,
     public endZoom: number = 1,
     public durationMs: number = 1,
+    public startMs: number = 0,
   ) {}
+}
+
+enum Stage {
+  PAUSED = 'PAUSED',
+  INTRO = 'INTRO',
+  BODY = 'BODY',
+  OUTRO = 'OUTRO',
 }
 
 const audioPlaybackRate = 1.1;
@@ -15,13 +23,14 @@ export class OutputUi extends HTMLElement {
   private gradebookMgr = new GradebookMgr;
   private scoreBoard = new ScoreBoard;
   private fps = 30;
-  private isPlaying = false;
-  private currTimeoutId = -1;
+  private longTimeouts: number[] = [];
   private zoomStartTime: number | null = null;
   private videoForCanvas: HTMLVideoElement | null = null;
   private scoreboardType = ScoreboardType.NONE;
   private zoomRallyIdx: number | null = null;
   private precomputedZoomInstructions: Zoom[] = [];
+  private matchRecorder: MediaRecorder | null = null;
+  private stage: Stage = Stage.PAUSED;
   
   connectedCallback() {
     this.innerHTML = htmlTemplate;
@@ -34,20 +43,26 @@ export class OutputUi extends HTMLElement {
   }
   
   handleKeydown(evt: KeyboardEvent) {
-    const video = this.querySelector('#match-video-input') as HTMLVideoElement;
     if (matchKey(evt, 'o')) {
       const videoUpload = this.querySelector('#videoUpload') as HTMLInputElement;
       videoUpload.click();
     } else if (matchKey(evt, 'space')) {
       evt.preventDefault();
-      if (video.paused) {
-        this.isPlaying = true;
-        this.record();
-      } else {
-        this.isPlaying = false;
-        window.clearTimeout(this.currTimeoutId);
-        video.pause();
+      if (this.stage === Stage.PAUSED) {
+        this.startIntro();
+      } else if (this.stage === Stage.INTRO) {
+        this.startBody();
+      } else if (this.stage === Stage.BODY) {
+        this.startOutro();
+      } else if (this.stage === Stage.OUTRO) {
+        this.startPaused();
       }
+    } else if (matchKey(evt, 'right')) {
+      this.cleanupStage();
+      this.playBodyAndSkipRecursively(this.scoreBoard.rallyCtxIdx + 1);
+    } else if (matchKey(evt, 'left')) {
+      this.cleanupStage();
+      this.playBodyAndSkipRecursively(this.scoreBoard.rallyCtxIdx - 1);
     }
   }
 
@@ -78,20 +93,6 @@ export class OutputUi extends HTMLElement {
     outroAudioSource.connect(audioDestination);
     outroAudioSource.connect(audioContext.destination);
 
-    introVideo.onplay = () => {
-      this.videoForCanvas = introVideo;
-      window.setTimeout(() => {
-        this.scoreboardType = ScoreboardType.PREVIEW;
-      }, (introAudio.duration - 20) / audioPlaybackRate * 1000 );
-    };
-    matchVideo.onplay = () => {
-      this.videoForCanvas = matchVideo;
-      this.scoreboardType = ScoreboardType.CURRENT_SCORE;
-    };
-    outroAudio.onplay = () => {
-      this.scoreboardType = ScoreboardType.FINAL_STAT;
-    };
-
     this.drawToCanvasRecursively(canvas);
 
     const outputStream = canvas.captureStream(this.fps);
@@ -100,7 +101,7 @@ export class OutputUi extends HTMLElement {
     return outputStream;
   }
 
-  record() {
+  startAndRecord() {
     let recordedChunks: Blob[] = [];
 
     // Create 1 stream and 1 recorder.
@@ -110,13 +111,13 @@ export class OutputUi extends HTMLElement {
       mimeType: 'video/webm',
       frameRate: this.fps
     };
-    const matchRecorder = new MediaRecorder(matchStream, mediaRecorderOptions);
-    matchRecorder.ondataavailable = event => {
+    this.matchRecorder = new MediaRecorder(matchStream, mediaRecorderOptions);
+    this.matchRecorder.ondataavailable = event => {
       if (event.data.size > 0) {
         recordedChunks.push(event.data);
       }
     }
-    matchRecorder.onstop = () => {
+    this.matchRecorder.onstop = () => {
       saveVideo(recordedChunks);
       recordedChunks = [];
     }
@@ -124,31 +125,113 @@ export class OutputUi extends HTMLElement {
     // Orchestrate
     const introAudio = this.querySelector('#intro-audio-input') as HTMLAudioElement;
     const introVideo = this.querySelector('#intro-video-input') as HTMLVideoElement;
-    const matchVideo = this.querySelector('#match-video-input') as HTMLVideoElement;
     const outroAudio = this.querySelector('#outro-audio-input') as HTMLAudioElement;
     introAudio.playbackRate = audioPlaybackRate;
     outroAudio.playbackRate = audioPlaybackRate;
-    introAudio.currentTime = 235;
+    // introAudio.currentTime = 235;
     // outroAudio.currentTime = 220;
     this.scoreBoard.setMatchData(this.gradebookMgr.project.matchData);
     this.precomputedZoomInstructions = this.computeZoomInstructions();
 
-    introAudio.onpause = () => {
-      introVideo.pause();
-      this.jumpAndPlayRecursively();
-    };
-    matchVideo.onpause = () => {
-      outroAudio.play();
-    };
-    outroAudio.onpause = () => {
-      matchRecorder.stop();
-    }
+    // Triggering next stage
+    introAudio.onpause = () => this.startBody();
+    outroAudio.onpause = () => this.startPaused();
+
     introAudio.play();
     introVideo.play();
-    matchRecorder.start();
+    this.matchRecorder.start();
+  }
+
+  private cleanupStage() {
+    this.longTimeouts.forEach(timeoutId => {
+      window.clearTimeout(timeoutId);
+    });
+    this.longTimeouts = [];
+    const video = this.querySelector('#match-video-input') as HTMLVideoElement;
+    video.pause();
+    const introVideo = this.querySelector('#intro-video-input') as HTMLVideoElement;
+    introVideo.pause();
+    const outroAudio = this.querySelector('#outro-audio-input') as HTMLAudioElement;
+    outroAudio.pause();
+    const introAudio = this.querySelector('#intro-audio-input') as HTMLAudioElement;
+    introAudio.pause();
+  }
+
+  private startIntro() {
+    if (this.stage === Stage.INTRO) {
+      return;
+    }
+    this.stage = Stage.INTRO;
+    this.cleanupStage();
+
+    const introVideo = this.querySelector('#intro-video-input') as HTMLVideoElement;
+    const introAudio = this.querySelector('#intro-audio-input') as HTMLAudioElement;
+    this.videoForCanvas = introVideo;
+    const longTimeout = window.setTimeout(() => {
+      this.scoreboardType = ScoreboardType.PREVIEW;
+    }, (introAudio.duration - 20) / audioPlaybackRate * 1000 );
+    this.startAndRecord();
+    this.longTimeouts.push(longTimeout);
+  }
+  private startBody() {
+    if (this.stage === Stage.BODY) {
+      return;
+    }
+    this.stage = Stage.BODY;
+    this.cleanupStage();
+
+    const matchVideo = this.querySelector('#match-video-input') as HTMLVideoElement;
+    this.videoForCanvas = matchVideo;
+    this.playBodyAndSkipRecursively(); 
+  }
+  private startOutro() {
+    if (this.stage === Stage.OUTRO) {
+      return;
+    }
+    this.stage = Stage.OUTRO;
+    this.cleanupStage();
+    const video = this.querySelector('#match-video-input') as HTMLVideoElement;
+    video.play();
+    window.setTimeout(() => {
+      video.pause();
+      this.videoForCanvas = null;
+    }, 500);
+    // Total: 7 * 15 ~ 1:45
+    const shorterDurationMs = 15000;
+    // Total: 2:20
+    const durationMs = 35000;
+    this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_1;
+    const timeout1 = window.setTimeout(() => {
+      this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_2;
+    }, durationMs);
+    
+    const timeout2 = window.setTimeout(() => {
+      this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_3;
+    }, durationMs + shorterDurationMs);
+    
+    const timeout3 = window.setTimeout(() => {
+      this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_4;
+    }, durationMs + shorterDurationMs * 2);
+
+    this.longTimeouts.push(timeout1, timeout2, timeout3);
+    
+    const outroAudio = this.querySelector('#outro-audio-input') as HTMLAudioElement;
+    outroAudio.play();
+  }
+
+  private startPaused() {
+    if (this.stage === Stage.PAUSED) {
+      return;
+    }
+    this.matchRecorder?.stop();
+    this.stage = Stage.PAUSED;
+    this.cleanupStage();
   }
 
   private drawToCanvasRecursively(canvas: HTMLCanvasElement) {
+    if (this.stage === Stage.PAUSED) {
+      return;
+    }
     const videoForCanvas = this.videoForCanvas;
     const scoreboardType = this.scoreboardType;
     const ctx = canvas.getContext('2d') as CanvasRenderingContext2D;
@@ -162,7 +245,7 @@ export class OutputUi extends HTMLElement {
           this.zoomStartTime = performance.now();
         }
         
-        const elapsed = performance.now() - this.zoomStartTime;
+        const elapsed = Math.max(0, performance.now() - this.zoomStartTime - zoomInstruction.startMs);
         const progress = Math.min(elapsed / zoomInstruction.durationMs, 1);
         const scale = zoomInstruction.startZoom - 
           ((zoomInstruction.startZoom - zoomInstruction.endZoom) * progress);
@@ -187,16 +270,16 @@ export class OutputUi extends HTMLElement {
     let currZoom = 1;
     return this.scoreBoard.rallyContexts.map(rallyCtx => {
       if (rallyCtx.isNewSet()) {
-        const slowZoomIn = new Zoom(currZoom, currZoom - 0.06, 1500);
+        const slowZoomIn = new Zoom(1, 1 - 0.05, 1500, 1000);
         currZoom = slowZoomIn.endZoom;
         return slowZoomIn;
       } else if (rallyCtx.isNewGame()) {
-        const fastZoomIn = new Zoom(1, currZoom - 0.03, 500);
+        const fastZoomIn = new Zoom(1, 1 - 0.02, 500, 1000);
         currZoom = fastZoomIn.endZoom;
         return fastZoomIn;
       } else if (!rallyCtx.isSecondServe()) {
         if (currZoom < 1) {
-          currZoom += 0.01;
+          currZoom += 0.005;
         }
         return new Zoom(currZoom, currZoom);
       }
@@ -209,14 +292,19 @@ export class OutputUi extends HTMLElement {
     this.zoomStartTime = null;
   }
 
-  jumpAndPlayRecursively(rallyCtxIdx = 0) {
-  // jumpAndPlayRecursively(rallyCtxIdx = 105) {
-    if (!this.isPlaying) {
+  playBodyAndSkipRecursively(rallyCtxIdx = 0) {
+  // playBodyAndSkipRecursively(rallyCtxIdx = 105) {
+    if (this.stage !== Stage.BODY) {
       return;
     }
     const rallyContexts = this.scoreBoard.rallyContexts;
     const video = this.querySelector('#match-video-input') as HTMLVideoElement;
     const rallyCtx = rallyContexts[rallyCtxIdx];
+    if (rallyCtx.isNewGame()) {
+      this.scoreboardType = ScoreboardType.CURRENT_SCORE;
+    } else {
+      this.scoreboardType = ScoreboardType.CURRENT_SCORE_WITH_HISTORY;
+    }
     this.scoreBoard.setRallyCtxIdx(rallyCtxIdx);
     this.setZoomRallyIdx(rallyCtxIdx);
     const durationMs = rallyCtx.rally.endTime.ms - rallyCtx.rally.startTime.ms;
@@ -228,24 +316,44 @@ export class OutputUi extends HTMLElement {
     } else if (durationMs < 6000) {
       rightPaddingMs = 100;
     }
-    let leftPaddingMs = 1000;
+    let leftPaddingMs = rallyCtx.isNewSet() ? 3000 : (rallyCtx.isNewGame() ? 2500 : 1000);
     video.currentTime = (rallyCtx.rally.startTime.ms - leftPaddingMs) / 1000;
     if (video.paused) {
       video.play();
     }
-    this.currTimeoutId = window.setTimeout(() => {
+    const longTimeout = window.setTimeout(() => {
+      const nextRallyCtx = rallyContexts[rallyCtxIdx + 1];
       // - 2 because there is an empty rally context at the end.
-      if (rallyCtxIdx < rallyContexts.length - 2) {
-        this.jumpAndPlayRecursively(rallyCtxIdx + 1);
-      } else {
-        video.pause();
+      if (!nextRallyCtx || rallyCtxIdx >= rallyContexts.length - 2) {
+        this.startOutro();
+        return;
       }
+
+      if (!nextRallyCtx.isNewGame()) {
+        this.playBodyAndSkipRecursively(rallyCtxIdx + 1);
+        return;
+      }
+
+      // For a new game in the middle of the match, show END_OF_GAME_STAT for 6 seconds
+      // before going to the next rally.
+      this.scoreboardType = ScoreboardType.END_OF_GAME_STAT;
+      const longTimeout0 = window.setTimeout(() => {
+        video.pause();
+      }, 500);
+      this.longTimeouts.push(longTimeout0);
+      const longTimeout1 = window.setTimeout(() => {
+        this.playBodyAndSkipRecursively(rallyCtxIdx + 1);
+      }, 6000);
+      this.longTimeouts.push(longTimeout1);
+      return;
     }, durationMs + rightPaddingMs + leftPaddingMs);
-    window.setTimeout(() => {
+    this.longTimeouts.push(longTimeout);
+    const longTimeout2 = window.setTimeout(() => {
       if (rallyCtxIdx < rallyContexts.length - 1) {
         this.scoreBoard.setRallyCtxIdx(rallyCtxIdx + 1);
       }
     }, durationMs + leftPaddingMs);
+    this.longTimeouts.push(longTimeout2);
   }
 }
 

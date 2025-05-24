@@ -65,6 +65,12 @@ export class RallyContext {
   getScoreAfterRally() {
     const rally = this.rally;
     const scoreAfterRally = this.scoreBeforeRally.clone();
+    if (rally.result === RallyResult.Let) {
+      scoreAfterRally.numLets++;
+      return scoreAfterRally;
+    } else {
+      scoreAfterRally.numLets = 0;
+    }
 
     const serverScore = rally.isMyServe ? scoreAfterRally.p1 : scoreAfterRally.p2;
     const returnerScore = rally.isMyServe ? scoreAfterRally.p2 : scoreAfterRally.p1;
@@ -102,6 +108,9 @@ export class RallyContext {
   }
 
   isNewGame() {
+    if (this.scoreBeforeRally.numLets > 0) {
+      return false;
+    }
     return this.scoreBeforeRally.p1.points === 0 && this.scoreBeforeRally.p1.serve === 0
         && this.scoreBeforeRally.p2.points === 0 && this.scoreBeforeRally.p2.serve === 0;
   }
@@ -212,6 +221,9 @@ export function annotateMatchStat(rallyContexts: RallyContext[]) {
   const stat = new MatchStat();
   rallyContexts.forEach((rallyContext) => {
     rallyContext.matchStatBeforeRally = stat.clone();
+    if (rallyContext.rally.result === RallyResult.Let) {
+      return;
+    }
     // Check game points and set points using direct score comparison
     if (isSubjectGamePoint(rallyContext.scoreBeforeRally.p1, rallyContext.scoreBeforeRally.p2)) {
       stat.p1Stats.numGamePts++;
@@ -275,9 +287,7 @@ export function annotateMatchStat(rallyContexts: RallyContext[]) {
       const isSecondServe = rallyContext.isSecondServe();
       
       if (isSecondServe) {
-        if (rallyContext.rally.result !== RallyResult.Let) {
-          serverStats.numSecondServes++;
-        }
+        serverStats.numSecondServes++;
         if (rallyContext.rally.result !== RallyResult.Fault) {
           serverStats.numSecondServesMade++;
           if (rallyContext.rally.result === RallyResult.PtServer) {
@@ -296,9 +306,7 @@ export function annotateMatchStat(rallyContexts: RallyContext[]) {
           serverStats.numSecondServeUnforcedErrorsByReturner++;
         }
       } else {
-        if (rallyContext.rally.result !== RallyResult.Let) {
-          serverStats.numFirstServes++;
-        }
+        serverStats.numFirstServes++;
         if (rallyContext.rally.result !== RallyResult.Fault) {
           serverStats.numFirstServesMade++;
           if (rallyContext.rally.result === RallyResult.PtServer) {
