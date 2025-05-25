@@ -169,7 +169,7 @@ export class OutputUi extends HTMLElement {
     this.videoForCanvas = introVideo;
     const longTimeout = window.setTimeout(() => {
       this.scoreboardType = ScoreboardType.PREVIEW;
-    }, (introAudio.duration - 20) / audioPlaybackRate * 1000 );
+    }, (introAudio.duration - 15) / audioPlaybackRate * 1000 );
     this.startAndRecord();
     this.longTimeouts.push(longTimeout);
   }
@@ -341,7 +341,7 @@ export class OutputUi extends HTMLElement {
         return;
       }
 
-      if (!nextRallyCtx.isNewGame()) {
+      if (!nextRallyCtx.isNewGame() || rallyCtxIdx >= rallyContexts.length - 4) {
         this.playBodyAndSkipRecursively(rallyCtxIdx + 1);
         return;
       }
