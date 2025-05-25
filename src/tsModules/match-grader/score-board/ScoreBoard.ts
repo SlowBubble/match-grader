@@ -12,6 +12,7 @@ const solarizedContent = '#657b83';  // Solarized Light content
 
 export enum ScoreboardType {
   NONE,
+  NAMES,
   PREVIEW,
   CURRENT_SCORE,
   CURRENT_SCORE_WITH_HISTORY,
@@ -122,12 +123,38 @@ export class ScoreBoard {
       this.renderMatchStat8(ctx, canvasWidth, canvasHeight);
     } else if (scoreboardType === ScoreboardType.END_OF_MATCH_STAT_9) {
       this.renderMatchStat9(ctx, canvasWidth, canvasHeight);
+    } else if (scoreboardType === ScoreboardType.NAMES) {
+      this.renderNames(ctx, canvasWidth, canvasHeight);
     } else if (scoreboardType === ScoreboardType.PREVIEW) {
       this.renderPreview(ctx, canvasWidth, canvasHeight);
     }
 
     // Restore context state
     ctx.restore();
+  }
+
+  // Show p1 name centering on the lower left quandrant and p2 name centering on the upper right quandrant
+  private renderNames(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
+    this.matchData.p1IsOnFarSide;
+    const textSize = Math.min(canvasWidth / 20 / 2, canvasHeight / 10 / 2);
+    ctx.font = `bold ${textSize}px Arial`;
+    ctx.fillStyle = 'white';
+
+    const p1 = this.matchData.myName;
+    const p2 = this.matchData.oppoName;
+    // Player 1 name in lower left quadrant
+    const nearSideNameText =  this.matchData.p1IsOnFarSide ? p2 : p1;
+    const nearSideNameWidth = ctx.measureText(nearSideNameText).width;
+    const nearSideNameX = (canvasWidth * 3/4) - (nearSideNameWidth/2);
+    const nearSideNameY = (canvasHeight * 4/5);
+    ctx.fillText(nearSideNameText, nearSideNameX, nearSideNameY);
+
+    // Player 2 name in upper right quadrant
+    const farSideNameText = this.matchData.p1IsOnFarSide ? p1 : p2;
+    const farSideNameWidth = ctx.measureText(farSideNameText).width;
+    const farSideNameX = (canvasWidth * 3/4) - (farSideNameWidth/2);
+    const farSideNameY = (canvasHeight/2.5);
+    ctx.fillText(farSideNameText, farSideNameX, farSideNameY);
   }
 
   private renderGameStat(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number) {
@@ -336,42 +363,84 @@ export class ScoreBoard {
 
     // Render left table (table1)
     table.forEach((row, rowIndex) => {
-      let x = centerX - maxTableWidth - 10; // Start from left side of center
-      row.forEach((cell, colIndex) => {
-        const cellWidth = colWidths[colIndex];
-        ctx.fillStyle = cell.color || solarizedBase1;
-        ctx.fillRect(x, yOffset + rowIndex * cellHeight, cellWidth, cellHeight);
+      let x = centerX - maxTableWidth - 10;
+      const rowY = yOffset + rowIndex * cellHeight;
+      const rowWidth = row.reduce((sum, _, i) => sum + colWidths[i], 0);
+      
+      // For non-score row
+      if (rowIndex > 0 && !row.some(cell => cell.text.startsWith('-'))) {
+        // Draw cells background first
+        row.forEach((cell, colIndex) => {
+          const cellWidth = colWidths[colIndex];
+          ctx.fillStyle = cell.color || solarizedBase1;
+          ctx.fillRect(x, rowY, cellWidth, cellHeight);
+          x += cellWidth;
+        });
+        
+        // Draw single border for whole row.
+        x = centerX - maxTableWidth - 10;
         ctx.strokeStyle = solarizedContent;
         ctx.lineWidth = 3;
-        ctx.strokeRect(x, yOffset + rowIndex * cellHeight, cellWidth, cellHeight);
+        ctx.strokeRect(x, rowY, rowWidth, cellHeight);
+      }
+
+      // Draw text for each cell
+      x = centerX - maxTableWidth - 10;
+      let cellCount = 0;
+      row.forEach((cell, colIndex) => {
+        const cellWidth = colWidths[colIndex];
         ctx.fillStyle = cell.textColor || solarizedContent;
-        
-        // Keep text centered in cell
         const textWidth = ctx.measureText(cell.text).width;
         const textX = x + (cellWidth - textWidth) / 2;
-        const textY = yOffset + rowIndex * cellHeight + (cellHeight + textHeight) / 2;
+        const textY = rowY + (cellHeight + textHeight) / 2;
         ctx.fillText(cell.text, textX, textY);
-        x += cellWidth;  // Move right after each cell
+        cellCount++;
+        if (cell.drawRightBorder) {
+          ctx.fillStyle = '#bbb';
+          ctx.fillRect(x + cellWidth - 2, rowY, 4, cellHeight);
+        }
+        x += cellWidth;
       });
     });
 
     // Render right table (table2) - flipped horizontally
     table2.forEach((row, rowIndex) => {
-      let x = centerX + 10; // Start from center, move right
-      row.forEach((cell, colIndex) => {
-        const cellWidth = colWidths[colIndex];
-        ctx.fillStyle = cell.color || solarizedBase1;
-        ctx.fillRect(x, yOffset + rowIndex * cellHeight, cellWidth, cellHeight);
+      let x = centerX + 10;
+      const rowY = yOffset + rowIndex * cellHeight;
+      const rowWidth = row.reduce((sum, _, i) => sum + colWidths[i], 0);
+      // For non-score row
+      if (rowIndex > 0 && !row.some(cell => cell.text.startsWith('-'))) {
+
+        // Draw cells background first
+        row.forEach((cell, colIndex) => {
+          const cellWidth = colWidths[colIndex];
+          ctx.fillStyle = cell.color || solarizedBase1;
+          ctx.fillRect(x, rowY, cellWidth, cellHeight);
+          x += cellWidth;
+        });
+
+        // Draw single border for whole row for non-score row.
+        x = centerX + 10;
         ctx.strokeStyle = solarizedContent;
         ctx.lineWidth = 3;
-        ctx.strokeRect(x, yOffset + rowIndex * cellHeight, cellWidth, cellHeight);
+        ctx.strokeRect(x, rowY, rowWidth, cellHeight);
+      }
+
+      // Draw text for each cell
+      x = centerX + 10;
+      let cellCount = 0;
+      row.forEach((cell, colIndex) => {
+        const cellWidth = colWidths[colIndex];
         ctx.fillStyle = cell.textColor || solarizedContent;
-        
-        // Center text horizontally and vertically
         const textWidth = ctx.measureText(cell.text).width;
         const textX = x + (cellWidth - textWidth) / 2;
-        const textY = yOffset + rowIndex * cellHeight + (cellHeight + textHeight) / 2;
+        const textY = rowY + (cellHeight + textHeight) / 2;
         ctx.fillText(cell.text, textX, textY);
+        cellCount++;
+        if (cell.drawRightBorder) {
+          ctx.fillStyle = '#bbb';
+          ctx.fillRect(x + cellWidth - 2, rowY, 4, cellHeight);
+        }
         x += cellWidth;
       });
     });
@@ -464,10 +533,10 @@ export class ScoreBoard {
     return [row1, row2]
   }
   private getMatchHistory(includeP1Serving = true, includeP2Serving = true): CellInfo[][] {
-    const firstServerIsP1 = !this.matchData.secondServerIsMe;
+    const firstServerIsP1 = true;
     const rows: CellInfo[][] = [];
     if (firstServerIsP1 != includeP1Serving) {
-      rows.push([new CellInfo('')]);
+      rows.push([new CellInfo(''), new CellInfo(''), new CellInfo('')]);
     }
     getEasinessByGame(this.rallyContexts)
     .filter(game => game.length > 0)
@@ -479,17 +548,64 @@ export class ScoreBoard {
       if (!includeP2Serving && !p1IsServing) {
         return;
       }
-      const row0 = [game[0].scoreBeforeRally.p1.games.toString(), '-', game[0].scoreBeforeRally.p2.games.toString()].map((text) => {
-        return new CellInfo(text, solarizedBase1);
-      });
+      // Note that the color in this row is hard-coded in the rendering function.
+      const numP1Wins = game.filter((easiness) => {
+        return easiness.winnerIsMe;
+      }).length;
+      const numP2Wins = game.length - numP1Wins;
+      const p1Won = numP1Wins > numP2Wins;
+      let p1Games = game[0].scoreBeforeRally.p1.games;
+      let p2Games = game[0].scoreBeforeRally.p2.games;
+      if (p1Won) {
+        p1Games += 1;
+      } else {
+        p2Games += 1;
+      }
+      function getColor(me: any, him: any): string {
+        if (parseInt(me) < parseInt(him)) {
+          return '#b01';
+        }
+        if (parseInt(me) > parseInt(him)) {
+          return '#0b1';
+        }
+        return solarizedContent;
+      }
+      const color = p1IsServing ? getColor(numP1Wins, numP2Wins) : getColor(numP2Wins, numP1Wins);
+      const row0 = [
+        new CellInfo(p1Games.toString(), '', color),
+        new CellInfo('-', '', color),
+        new CellInfo(p2Games.toString(), '', color),
+      ];
       rows.push(row0);
-      const row1: CellInfo[] = [];
-      const row2: CellInfo[] = [];
+      let row1: CellInfo[] = [];
+      let row2: CellInfo[] = [];
       rows.push(row1);
       rows.push(row2);
-      game.forEach((easiness) => {
-        row1.push(new CellInfo(easiness.getStr(true), solarizedBase3));
-        row2.push(new CellInfo(easiness.getStr(false), solarizedBase1a));
+      let cellCount = 0;
+      let ptDiff = 0;
+      game.forEach((easiness, ptIdx) => {
+        if (easiness.winnerIsMe) {
+          ptDiff += 1;
+        } else {
+          ptDiff -= 1;
+        }
+        let drawRightBorder = false;
+        if (ptIdx >= 3) {
+          if (ptDiff === 0) {
+            drawRightBorder = true;
+          }
+        }
+        row1.push(new CellInfo(easiness.getStr(true), solarizedBase3, '', drawRightBorder));
+        row2.push(new CellInfo(easiness.getStr(false), solarizedBase1a, '', drawRightBorder));
+        cellCount++;
+        if (cellCount === 12) {
+          // Start new rows
+          cellCount = 0;
+          row1 = [];
+          row2 = [];
+          rows.push(row1);
+          rows.push(row2);
+        }
       });
     });
     return rows;
@@ -761,6 +877,7 @@ class CellInfo {
     public text: string = '',
     public color: string = '',
     public textColor: string = '',
+    public drawRightBorder = false,
   ) {}
 }
 

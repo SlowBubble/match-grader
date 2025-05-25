@@ -167,11 +167,16 @@ export class OutputUi extends HTMLElement {
     const introVideo = this.querySelector('#intro-video-input') as HTMLVideoElement;
     const introAudio = this.querySelector('#intro-audio-input') as HTMLAudioElement;
     this.videoForCanvas = introVideo;
-    const longTimeout = window.setTimeout(() => {
+    this.longTimeouts.push(window.setTimeout(() => {
+      this.scoreboardType = ScoreboardType.NAMES;
+    }, 4000));
+    this.longTimeouts.push(window.setTimeout(() => {
+      this.scoreboardType = ScoreboardType.NONE;
+    }, 10000));
+    this.longTimeouts.push(window.setTimeout(() => {
       this.scoreboardType = ScoreboardType.PREVIEW;
-    }, (introAudio.duration - 15) / audioPlaybackRate * 1000 );
+    }, (introAudio.duration - 20) / audioPlaybackRate * 1000));
     this.startAndRecord();
-    this.longTimeouts.push(longTimeout);
   }
   private startBody() {
     if (this.stage === Stage.BODY) {
@@ -196,15 +201,14 @@ export class OutputUi extends HTMLElement {
       video.pause();
       this.videoForCanvas = null;
     }, 500);
-    // Total: 7 * 15 ~ 1:45
-    const shorterDurationMs = 15000;
-    // Total: 2:20
+
     const durationMs = 35000;
-    this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_1;
+    this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_9;
     this.longTimeouts.push(window.setTimeout(() => {
       this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_2;
     }, durationMs));
     
+    const shorterDurationMs = 15000;
     this.longTimeouts.push(window.setTimeout(() => {
       this.scoreboardType = ScoreboardType.END_OF_MATCH_STAT_3;
     }, durationMs + shorterDurationMs));
@@ -391,6 +395,8 @@ function formatDate(date: Date) {
   return `${year}-${month}-${day}_${hours}-${minutes}`;
 }
 
+const dirPath = './test_data/4-5';
+
 const htmlTemplate = `
 <input type="file" id="videoUpload" accept="video/*" style='display:none;'>
 <div class="inputoutput">
@@ -398,12 +404,12 @@ const htmlTemplate = `
 <div class="caption">canvasOutput</div>
 </div>
 <div>
-  <video id="match-video-input" controls src='./test_data/4-5/match.mp4'></video>
+  <video id="match-video-input" controls src='${dirPath}/match.mp4'></video>
 </div>
 <div>
-  <video id="intro-video-input" controls src='./test_data/4-5/warm-up.mp4'></video>
+  <video id="intro-video-input" controls src='${dirPath}/warm-up.mp4'></video>
 </div>
-<audio id="intro-audio-input" src='./test_data/4-5/intro.wav' style='display:none;'></audio>
-<audio id="outro-audio-input" src='./test_data/4-5/outro.wav' style='display:none;'></audio>
+<audio id="intro-audio-input" src='${dirPath}/intro.wav' style='display:none;'></audio>
+<audio id="outro-audio-input" src='${dirPath}/outro.wav' style='display:none;'></audio>
 `
 customElements.define('output-ui', OutputUi);

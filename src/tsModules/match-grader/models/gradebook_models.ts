@@ -85,10 +85,12 @@ export class MatchData {
   constructor(
     public scoringSystem = ScoringSystem.PRO_SET_6_GAME,
     public rallies: Rally[] = [],
+    // First server, a.k.a. p1
     public myName = 'Me',
+    // First returner, a.k.a. p2
     public oppoName = 'Opponent',
     public urls: string[] = [],
-    public secondServerIsMe = false,
+    public p1IsOnFarSide = false,
   ) {}
 
   static deserialize(json: any) {
@@ -98,7 +100,7 @@ export class MatchData {
       json.myName,
       json.oppoName,
       json.urls,
-      json.secondServerIsMe || false,
+      json.p1IsOnFarSide || false,
     );
   }
 

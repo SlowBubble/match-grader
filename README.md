@@ -3,14 +3,11 @@
 
 ## Doing
 
-- Don't show the END_OF_GAME_STAT for the last game.
 
 ## Done
 
-- Outro: 1st vs 2nd
-  - also add the denom.
-- Outro: Add a table of all the points in emojis
-  - Scaling may be difficult (may need to zoom out at the end or truncate long games or add extra lines)
+- Color the SxS score according to who wins the game
+
 
 ## P1
 

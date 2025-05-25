@@ -2,9 +2,9 @@ import { RallyContext } from "../models/rally_context";
 import { isForcingWin, isSafeForcingWin } from "../models/risk_level";
 import { Score } from "../models/score";
 
-export const easyWin = '🥝';
+export const easyWin = '🥬';
 export const mediumWin = '🍋';
-export const hardWin = '🍎';
+export const hardWin = '🌶️';
 const easyWinSecondServe = `${easyWin}*`;
 const mediumWinSecondServe = `${mediumWin}*`;
 const hardWinSecondServe = `${hardWin}*`;
